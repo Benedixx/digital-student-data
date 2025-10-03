@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Digitalisasi Buku Induk</title>
+  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- Login Page -->
+  <div id="loginPage" class="login-card">
+    <h1>Login</h1>
+    <input type="text" id="username" placeholder="Username"><br>
+    <input type="password" id="password" placeholder="Password"><br>
+    <button class="btn" onclick="login()">Login</button>
+    <p id="loginError" style="color:red;"></p>
+  </div>
+
+  <!-- Search Page -->
+  <div id="searchPage" class="hidden">
+    <div class="search-container">
+      <h1>Search Siswa</h1>
+      <input type="text" id="searchInput" placeholder="Ketik nama / NIS" onkeyup="searchSiswa()">
+    </div>
+
+    <div id="resultList" class="result"></div>
+    <div style="margin-top: 20px; text-align: center;">
+      <button class="btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Detail Page -->
+  <div id="detailPage" class="hidden">
+    <div class="detail-card" id="detailContent"></div>
+    <div style="margin-top: 20px; text-align: center;">
+      <button class="btn" onclick="backToResults()">Kembali</button>
+      <button class="btn" onclick="logout()">Logout</button>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,421 @@
+/* Digitalisasi Buku Induk - Styles */
+
+body { 
+    font-family: Arial, sans-serif; 
+    margin: 0; 
+    display: flex; 
+    flex-direction: column; 
+    align-items: center; 
+    justify-content: center; 
+    min-height: 100vh; 
+    background: #f5f5f5; 
+}
+
+.hidden { 
+    display: none; 
+}
+
+.login-card, .result { 
+    background: white; 
+    border-radius: 10px; 
+    padding: 30px; 
+    width: 500px; 
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1); 
+    margin-top: 15px; 
+}
+
+.detail-card { 
+    background: #f8f9fa; 
+    border-radius: 15px; 
+    padding: 25px; 
+    width: 90%; 
+    max-width: 1000px; 
+    box-shadow: 0 8px 30px rgba(0,0,0,0.1); 
+    margin-top: 15px; 
+}
+
+.search-container { 
+    text-align: center; 
+    margin-bottom: 10px; 
+    padding: 20px; 
+}
+
+#searchInput { 
+    width: 100%; 
+    max-width: 400px; 
+    padding: 15px; 
+    font-size: 18px; 
+    border-radius: 25px; 
+    border: 1px solid #ccc; 
+    outline: none; 
+    box-sizing: border-box; 
+}
+
+.upload-section { 
+    text-align: center; 
+    margin-top: 10px; 
+}
+
+.login-card input[type="text"], .login-card input[type="password"] { 
+    width: 100%; 
+    padding: 10px; 
+    margin: 5px 0; 
+    box-sizing: border-box; 
+    border: 1px solid #ccc; 
+    border-radius: 5px; 
+    outline: none; 
+}
+
+.detail-content { 
+    display: flex; 
+    align-items: center; 
+}
+
+.detail-content img { 
+    width: 100px; 
+    height: 100px; 
+    object-fit: cover; 
+    margin-right: 20px; 
+    margin-top: 0; 
+}
+
+.detail-text { 
+    flex: 1; 
+}
+
+.result-item { 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 15px; 
+    border-bottom: 1px solid #eee; 
+}
+
+.result-item:last-child { 
+    border-bottom: none; 
+}
+
+.btn { 
+    padding: 10px 20px; 
+    border: none; 
+    border-radius: 5px; 
+    cursor: pointer; 
+    background: #007bff; 
+    color: white; 
+    margin: 5px; 
+}
+
+.btn:hover { 
+    background: #0056b3; 
+}
+
+img { 
+    max-width: 120px; 
+    margin-top: 15px; 
+    border-radius: 10px; 
+}
+
+.detail-group {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    background: #fafafa;
+}
+
+.detail-group h3 {
+    margin-top: 0;
+    font-size: 16px;
+    color: #007bff;
+}
+
+h1 { 
+    margin-bottom: 25px; 
+}
+
+/* Enhanced Student Detail Styles - Compact & Responsive */
+.student-profile {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    padding: 20px;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 15px;
+    color: white;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+}
+
+.profile-image {
+    margin-right: 25px;
+}
+
+.student-photo {
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,0.3);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.profile-info {
+    flex: 1;
+}
+
+.student-name {
+    margin: 0 0 12px 0;
+    font-size: 1.8em;
+    font-weight: 700;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.basic-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.info-item {
+    background: rgba(255,255,255,0.15);
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.9em;
+    border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Tab Navigation */
+.tab-container {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+
+.tab-nav {
+    display: flex;
+    background: #f8f9fa;
+    border-bottom: 2px solid #e9ecef;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 15px 10px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    font-size: 0.9em;
+    font-weight: 600;
+    color: #666;
+    transition: all 0.3s ease;
+    border-bottom: 3px solid transparent;
+}
+
+.tab-btn:hover {
+    background: #e9ecef;
+    color: #007bff;
+}
+
+.tab-btn.active {
+    color: #007bff;
+    background: white;
+    border-bottom-color: #007bff;
+}
+
+.tab-content {
+    display: none;
+    padding: 25px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+/* Grid Layouts for Different Tabs */
+.info-grid, .family-grid, .school-grid, .health-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.info-item-grid {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 10px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 3px solid #007bff;
+    align-items: center;
+}
+
+/* Section Styles for Each Tab */
+.family-section, .school-section, .health-section {
+    background: #f8f9fa;
+    border-radius: 10px;
+    padding: 20px;
+    border-left: 4px solid #007bff;
+}
+
+.family-title, .school-title, .health-title {
+    margin: 0 0 15px 0;
+    font-size: 1.1em;
+    font-weight: 700;
+    color: #333;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #007bff;
+}
+
+.family-details, .school-details, .health-details {
+    display: grid;
+    gap: 8px;
+}
+
+.family-item, .school-item, .health-item {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    gap: 10px;
+    padding: 8px 12px;
+    background: white;
+    border-radius: 6px;
+    align-items: center;
+}
+
+.family-label, .school-label, .health-label {
+    font-weight: 600;
+    color: #666;
+    font-size: 0.9em;
+}
+
+.family-value, .school-value, .health-value {
+    color: #333;
+    font-size: 0.95em;
+    word-break: break-word;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-header {
+        flex-direction: column;
+        text-align: center;
+        padding: 15px;
+    }
+    
+    .profile-image {
+        margin-right: 0;
+        margin-bottom: 15px;
+    }
+    
+    .student-photo {
+        width: 70px;
+        height: 70px;
+    }
+    
+    .student-name {
+        font-size: 1.5em;
+    }
+    
+    .basic-info {
+        justify-content: center;
+        gap: 8px;
+    }
+    
+    .info-item {
+        font-size: 0.8em;
+        padding: 4px 8px;
+    }
+    
+    .tab-nav {
+        flex-wrap: wrap;
+    }
+    
+    .tab-btn {
+        font-size: 0.8em;
+        padding: 12px 8px;
+    }
+    
+    .tab-content {
+        padding: 15px;
+        max-height: 50vh;
+    }
+    
+    .info-grid, .family-grid, .school-grid, .health-grid {
+        grid-template-columns: 1fr;
+        gap: 12px;
+    }
+    
+    .info-item-grid {
+        grid-template-columns: 1fr;
+        gap: 5px;
+        padding: 10px;
+    }
+    
+    .family-item, .school-item, .health-item {
+        grid-template-columns: 1fr;
+        gap: 5px;
+        padding: 10px;
+    }
+    
+    .family-section, .school-section, .health-section {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 480px) {
+    .detail-card {
+        width: 95%;
+        padding: 15px;
+    }
+    
+    .profile-header {
+        padding: 12px;
+    }
+    
+    .student-name {
+        font-size: 1.3em;
+    }
+    
+    .tab-content {
+        padding: 12px;
+        max-height: 45vh;
+    }
+    
+    .tab-btn {
+        font-size: 0.75em;
+        padding: 10px 6px;
+    }
+}
+
+/* Utility Classes */
+.text-center { text-align: center; }
+.mb-1 { margin-bottom: 8px; }
+.mb-2 { margin-bottom: 16px; }
+.p-1 { padding: 8px; }
+.p-2 { padding: 16px; }
+.hidden { display: none !important; }
+.visible { display: block !important; }
+
+/* Custom Scrollbar for Tab Content */
+.tab-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.tab-content::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.3);
+    border-radius: 3px;
+}
+
+.tab-content::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.5);
+}
