@@ -111,18 +111,15 @@ async function loadData() {
     const sheetName = workbook.SheetNames.includes('Data') ? 'Data' : workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
-    // Try to read headers first to understand the structure
-    const headersRaw = XLSX.utils.sheet_to_json(sheet, { range: 0, header: 1 });
-    console.log('Headers from row 0:', headersRaw[0] ? Object.keys(headersRaw[0]) : 'No headers');
-    
-    // Read from row 1 to get actual data with proper headers
-    const rawData = XLSX.utils.sheet_to_json(sheet, { range: 0, defval: '' });
+    // Read data with headers (XLSX automatically uses first row as headers)
+    const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
     console.log('Raw data from Excel:', rawData.length, 'rows');
     console.log('Sample raw data:', rawData.slice(0, 2));
+    console.log('Column headers:', rawData.length > 0 ? Object.keys(rawData[0]).slice(0, 10) : 'No data');
     
-    // Skip first row if it doesn't contain actual student data
-    const dataToProcess = rawData.slice(1); // Skip header row
-    console.log('Data after skipping header:', dataToProcess.length, 'rows');
+    // Use all data (headers are already handled by sheet_to_json)
+    const dataToProcess = rawData;
+    console.log('Data to process:', dataToProcess.length, 'rows');
 
     // helper: normalisasi header jadi underscore_case
     function normalizeKey(k) {
@@ -166,6 +163,21 @@ async function loadData() {
           const nk = normalizeKey(k);
           obj[nk] = row[k];
         });
+        
+        // Debug: Log first row's keys related to Section C and E
+        if (index === 0) {
+          const relevantKeys = Object.keys(obj).filter(k => 
+            k.includes('masuk') || k.includes('pindahan') || k.includes('tamat') || 
+            k.includes('pindah_sekolah') || k.includes('keluar') || k.includes('bea')
+          );
+          console.log('First student - Section C & E keys:', relevantKeys);
+          console.log('Sample values:', {
+            masuk_asal: obj.masuk_menjadi_murid_baru_asal_murid,
+            masuk_tk: obj.masuk_menjadi_murid_baru_nama_tk,
+            bea: obj.jenis_bea_siswa,
+            tamat: obj.tamat_belajar_tahun
+          });
+        }
       }
 
       // convenience fields
@@ -200,6 +212,26 @@ async function loadData() {
 
     console.log('Before filtering - total processed rows:', dataSiswa.length);
     console.log('Sample before filtering:', dataSiswa.slice(0, 3).map(s => ({ nama: s.nama, nis: s.nis })));
+    
+    // Debug: Check if Section C and E data is loaded
+    console.log('Section C & E data check:', dataSiswa.slice(0, 1).map(s => ({
+      nama: s.nama,
+      asal_murid: s.masuk_menjadi_murid_baru_asal_murid,
+      nama_tk: s.masuk_menjadi_murid_baru_nama_tk,
+      jenis_bea: s.jenis_bea_siswa,
+      tamat_tahun: s.tamat_belajar_tahun,
+      pindah_kelas: s.pindah_sekolah_dari_kelas
+    })));
+    
+    // Alert for debugging - show which keys exist
+    if (dataSiswa.length > 0) {
+      const firstStudent = dataSiswa[0];
+      console.log('FIRST STUDENT - Keys containing "masuk":', Object.keys(firstStudent).filter(k => k.includes('masuk')));
+      console.log('FIRST STUDENT - Sample Section C data:', {
+        asal: firstStudent.masuk_menjadi_murid_baru_asal_murid,
+        tk: firstStudent.masuk_menjadi_murid_baru_nama_tk
+      });
+    }
     
     // Filter out records without names
     dataSiswa = dataSiswa.filter(s => s.nama);
@@ -326,6 +358,25 @@ function searchSiswa() {
 // Show detail siswa
 function showDetail(index) {
   const s = currentResults[index];
+  console.log('=== SHOW DETAIL DEBUG ===');
+  console.log('Student object:', s);
+  console.log('Section C fields:', {
+    masuk_asal: s.masuk_menjadi_murid_baru_asal_murid,
+    masuk_tk: s.masuk_menjadi_murid_baru_nama_tk,
+    masuk_alamat: s.masuk_menjadi_murid_baru_alamat_sekolah,
+    masuk_tgl_sttb: s.masuk_menjadi_murid_baru_tgl_sttb,
+    masuk_nomor_sttb: s.masuk_menjadi_murid_baru_nomor_sttb
+  });
+  console.log('Section E fields:', {
+    tamat_tahun: s.tamat_belajar_tahun,
+    tamat_melanjutkan: s.tamat_belajar_melanjutkan_ke_sekolah,
+    pindah_dari_kelas: s.pindah_sekolah_dari_kelas,
+    pindah_ke_sekolah: s.pindah_sekolah_ke_sekolah,
+    pindah_kelas: s.pindah_sekolah_kelas,
+    keluar_tanggal: s.keluar_sekolah_tanggal,
+    keluar_alasan: s.keluar_sekolah_alasan
+  });
+  console.log('Bea Siswa:', s.jenis_bea_siswa);
   document.getElementById("searchPage").classList.add("hidden");
   document.getElementById("detailPage").classList.remove("hidden");
 
@@ -335,16 +386,16 @@ function showDetail(index) {
     const date = new Date(dateStr);
     if (isNaN(date.getTime())) return dateStr;
     
-    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
-                   'July', 'August', 'September', 'October', 'November', 'December'];
+    const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+    const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 
+                   'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
     
     const dayName = days[date.getDay()];
     const monthName = months[date.getMonth()];
     const day = date.getDate();
     const year = date.getFullYear();
     
-    return `${dayName}, ${monthName} ${day}, ${year}`;
+    return `${dayName}, ${day} ${monthName} ${year}`;
   }
   
   // Create full-page Buku Induk format matching traditional Indonesian format
@@ -382,11 +433,11 @@ function showDetail(index) {
               <td class="numbering" rowspan="2">1.</td>
               <td class="label" rowspan="2">Nama Murid</td>
               <td class="sub-label">a. Lengkap</td>
-              <td class="value">: ${s.nama_lengkap || s.nama || 'nama siswa 1'}</td>
+              <td class="value">: ${s.nama_lengkap || s.nama || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Panggilan</td>
-              <td class="value">: ${s.nama_panggilan || 'siswa 1'}</td>
+              <td class="value">: ${s.nama_panggilan || '—'}</td>
             </tr>
             
             <!-- 2. Jenis Kelamin -->
@@ -394,7 +445,7 @@ function showDetail(index) {
               <td class="numbering">2.</td>
               <td class="label">Jenis Kelamin</td>
               <td class="sub-label"></td>
-              <td class="value">: ${s.jenis_kelamin === 'L' ? 'L' : (s.jenis_kelamin === 'P' ? 'P' : '—')}</td>
+              <td class="value">: ${s.jenis_kelamin || '—'}</td>
             </tr>
             
             <!-- 3. Kelahiran -->
@@ -402,11 +453,11 @@ function showDetail(index) {
               <td class="numbering" rowspan="2">3.</td>
               <td class="label" rowspan="2">Kelahiran</td>
               <td class="sub-label">a. Tanggal</td>
-              <td class="value">: ${formatDate(s.tanggal_lahir) || 'Thursday, June 24, 2010'}</td>
+              <td class="value">: ${formatDate(s.tanggal_lahir) || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Tempat</td>
-              <td class="value">: ${s.tempat_lahir || 'Purworejo'}</td>
+              <td class="value">: ${s.tempat_lahir || '—'}</td>
             </tr>
             
             <!-- 4. Agama -->
@@ -414,7 +465,7 @@ function showDetail(index) {
               <td class="numbering">4.</td>
               <td class="label">Agama</td>
               <td class="sub-label"></td>
-              <td class="value">: ${s.agama || 'Islam'}</td>
+              <td class="value">: ${s.agama || '—'}</td>
             </tr>
             
             <!-- 5. Kewarganegaraan -->
@@ -422,7 +473,7 @@ function showDetail(index) {
               <td class="numbering">5.</td>
               <td class="label">Kewarganegaraan</td>
               <td class="sub-label"></td>
-              <td class="value">: ${s.kewarganegaraan || 'WNI'}</td>
+              <td class="value">: ${s.kewarganegaraan || '—'}</td>
             </tr>
             
             <!-- 6. Anak Ke -->
@@ -430,7 +481,7 @@ function showDetail(index) {
               <td class="numbering">6.</td>
               <td class="label">Anak Ke</td>
               <td class="sub-label"></td>
-              <td class="value">: ${s.anak_ke || '1'}</td>
+              <td class="value">: ${s.anak_ke || '—'}</td>
             </tr>
             
             <!-- 7. Jumlah Saudara -->
@@ -438,15 +489,15 @@ function showDetail(index) {
               <td class="numbering" rowspan="3">7.</td>
               <td class="label" rowspan="3">Jumlah Saudara</td>
               <td class="sub-label">a. Kandung</td>
-              <td class="value">: ${s.jumlah_saudara_kandung || '2'}</td>
+              <td class="value">: ${s.jumlah_saudara_kandung || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Tiri</td>
-              <td class="value">: ${s.jumlah_saudara_tiri || '1'}</td>
+              <td class="value">: ${s.jumlah_saudara_tiri || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">c. Angkat</td>
-              <td class="value">: ${s.jumlah_saudara_angkat || '4'}</td>
+              <td class="value">: ${s.jumlah_saudara_angkat || '—'}</td>
             </tr>
             
             <!-- 8. Bahasa Sehari-hari Keluarga -->
@@ -462,15 +513,15 @@ function showDetail(index) {
               <td class="numbering" rowspan="5">9.</td>
               <td class="label" rowspan="5">Keadaan Jasmani</td>
               <td class="sub-label">a. Berat Badan</td>
-              <td class="value">: ${s.keadaan_jasmani_berat_badan || '15'}</td>
+              <td class="value">: ${s.keadaan_jasmani_berat_badan || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Tinggi Badan</td>
-              <td class="value">: ${s.keadaan_jasmani_tinggi_badan || '120'}</td>
+              <td class="value">: ${s.keadaan_jasmani_tinggi_badan || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">c. Golongan Darah</td>
-              <td class="value">: ${s.keadaan_jasmani_golongan_darah || 'O'}</td>
+              <td class="value">: ${s.keadaan_jasmani_golongan_darah || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">d. Penyakit yang pernah diderita</td>
@@ -478,28 +529,28 @@ function showDetail(index) {
             </tr>
             <tr>
               <td class="sub-label">e. Imunisasi yang pernah diterima</td>
-              <td class="value">: ${s.imuninasi_yang_pernah_di_terima || 'Belum Lengkap'}</td>
+              <td class="value">: ${s.imuninasi_yang_pernah_di_terima || '—'}</td>
             </tr>
             
             <!-- 10. Alamat Rumah -->
             <tr>
               <td class="numbering">10.</td>
               <td class="label" colspan="2">Alamat Rumah (Jl, RT, RW, KEL, KEC, KODE POS)</td>
-              <td class="value">: ${buildIndonesianAddress(s) || 'Jl. Raden Patah 4/3, RT 07, RW 01, KEL. KEG, PWK, JATENG, 54171'}</td>
+              <td class="value">: ${buildIndonesianAddress(s) || '—'}</td>
             </tr>
             
             <!-- 11. Bertempat Tinggal Pada -->
             <tr>
               <td class="numbering">11.</td>
               <td class="label" colspan="2">Bertempat Tinggal Pada</td>
-              <td class="value">: ${s.bertempat_tinggal_pada || 'Orang Tua'}</td>
+              <td class="value">: ${s.bertempat_tinggal_pada || '—'}</td>
             </tr>
             
             <!-- 12. Jarak Tempat Tinggal ke Sekolah -->
             <tr>
               <td class="numbering">12.</td>
               <td class="label" colspan="2">Jarak Tempat Tinggal ke Sekolah</td>
-              <td class="value">: ${s.jarak_tempat_tinggal || '3'}</td>
+              <td class="value">: ${s.jarak_tempat_tinggal || '—'}</td>
             </tr>
 
             <!-- Section B Header -->
@@ -515,19 +566,19 @@ function showDetail(index) {
               <td class="numbering" rowspan="4">1.</td>
               <td class="label" rowspan="4">Nama</td>
               <td class="sub-label">a. Ayah</td>
-              <td class="value">: ${s.ayah_kandung_nama || 'nama ayah'}</td>
+              <td class="value">: ${s.ayah_kandung_nama || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;Tempat / tanggal lahir</td>
-              <td class="value">: ${s['ayah_kandung_tmp._lahir'] || 'purworejo'}, ${formatDate(s['ayah_kandung_tgl._lahir']) || '12 March 2018'}</td>
+              <td class="value">: ${s.ayah_kandung_tmp_lahir || '—'}${s.ayah_kandung_tgl_lahir ? ', ' + formatDate(s.ayah_kandung_tgl_lahir) : ''}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Ibu</td>
-              <td class="value">: ${s.ibu_kandung_nama || 'nama ibu'}</td>
+              <td class="value">: ${s.ibu_kandung_nama || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;Tempat / tanggal lahir</td>
-              <td class="value">: ${s['ibu_kandung_tmp._lahir'] || 'magelang'}, ${formatDate(s['ibu_kandung_tgl._lahir']) || '12 August 2018'}</td>
+              <td class="value">: ${s.ibu_kandung_tmp_lahir || '—'}${s.ibu_kandung_tgl_lahir ? ', ' + formatDate(s.ibu_kandung_tgl_lahir) : ''}</td>
             </tr>
             
             <!-- 2. Pendidikan Tertinggi -->
@@ -535,11 +586,11 @@ function showDetail(index) {
               <td class="numbering" rowspan="2">2.</td>
               <td class="label" rowspan="2">Pendidikan Tertinggi</td>
               <td class="sub-label">a. Ayah</td>
-              <td class="value">: ${s.ayah_kandung_pendidikan_tertinggi || 's1'}</td>
+              <td class="value">: ${s.ayah_kandung_pendidikan_tertinggi || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Ibu</td>
-              <td class="value">: ${s.ibu_kandung_pendidikan_tertinggi || 's2'}</td>
+              <td class="value">: ${s.ibu_kandung_pendidikan_tertinggi || '—'}</td>
             </tr>
             
             <!-- 3. Pekerjaan / Jabatan -->
@@ -547,11 +598,11 @@ function showDetail(index) {
               <td class="numbering" rowspan="2">3.</td>
               <td class="label" rowspan="2">Pekerjaan / Jabatan</td>
               <td class="sub-label">a. Ayah</td>
-              <td class="value">: ${s.ayah_kandung_pekerjaan || 'pns'}</td>
+              <td class="value">: ${s.ayah_kandung_pekerjaan || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Ibu</td>
-              <td class="value">: ${s.ibu_kandung_pekerjaan || 'p2'}</td>
+              <td class="value">: ${s.ibu_kandung_pekerjaan || '—'}</td>
             </tr>
             
             <!-- 4. Alamat -->
@@ -559,11 +610,11 @@ function showDetail(index) {
               <td class="numbering" rowspan="2">4.</td>
               <td class="label" rowspan="2">Alamat</td>
               <td class="sub-label">a. Rumah dan No. Telepon</td>
-              <td class="value">: ${s.ayah_kandung_alamat_rumah || 'alamat rumah'}, ${s.ayah_kandung_no_telepon || '083241455'}</td>
+              <td class="value">: ${s.ayah_kandung_alamat_rumah || '—'}${s.ayah_kandung_no_telepon ? ', ' + s.ayah_kandung_no_telepon : ''}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Kantor dan No. Telepon</td>
-              <td class="value">: ${s.ibu_kandung_alamat_rumah || 'alamat rumah'}, ${s.ibu_kandung_no_telepon || '083244455'}</td>
+              <td class="value">: ${s.ibu_kandung_alamat_rumah || '—'}${s.ibu_kandung_no_telepon ? ', ' + s.ibu_kandung_no_telepon : ''}</td>
             </tr>
             
             <!-- 5. Kewarganegaraan -->
@@ -571,11 +622,11 @@ function showDetail(index) {
               <td class="numbering" rowspan="2">5.</td>
               <td class="label" rowspan="2">Kewarganegaraan</td>
               <td class="sub-label">a. Ayah</td>
-              <td class="value">: ${s.ayah_kandung_kewarganegaraan || 'WNI'}</td>
+              <td class="value">: ${s.ayah_kandung_kewarganegaraan || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Ibu</td>
-              <td class="value">: ${s.ibu_kandung_kewarganegaraan || 'WNI'}</td>
+              <td class="value">: ${s.ibu_kandung_kewarganegaraan || '—'}</td>
             </tr>
             
             <!-- 6. Wali Murid -->
@@ -583,11 +634,11 @@ function showDetail(index) {
               <td class="numbering" rowspan="4">6.</td>
               <td class="label" rowspan="4">Wali Murid (Jika Mempunyai)</td>
               <td class="sub-label">a. Nama</td>
-              <td class="value">: ${s.wali_murid_nama || 'wl'}</td>
+              <td class="value">: ${s.wali_murid_nama || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Hubungan Keluarga</td>
-              <td class="value">: ${s.wali_murid_hubungan_keluarga || 'praktek'}</td>
+              <td class="value">: ${s.wali_murid_hubungan_keluarga || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">c. Pendidikan Tertinggi</td>
@@ -611,26 +662,26 @@ function showDetail(index) {
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;a. Asal Murid</td>
-              <td class="value">: ${s.masuk_menjadi_murid_baru_asal_murid || 'tk'}</td>
+              <td class="value">: ${s.masuk_menjadi_murid_baru_asal_murid || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;b. Nama TK</td>
-              <td class="value">: ${s.masuk_menjadi_murid_baru_nama_tk || 'mulyorejo'}</td>
+              <td class="value">: ${s.masuk_menjadi_murid_baru_nama_tk || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;c. Alamat Sekolah</td>
-              <td class="value">: ${s.masuk_menjadi_murid_baru_alamat_sekolah || 'Jl. Gg. Raya Nusantara Purworejo'}</td>
+              <td class="value">: ${s.masuk_menjadi_murid_baru_alamat_sekolah || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;d. Tanggal dan No. STTB TK</td>
-              <td class="value">: ${formatDate(s.masuk_menjadi_murid_baru_tgl_sttb) || '1 January 2010, 43773'}</td>
+              <td class="value">: ${formatDate(s.masuk_menjadi_murid_baru_tgl_sttb) || '—'}${s.masuk_menjadi_murid_baru_nomor_sttb ? ', ' + s.masuk_menjadi_murid_baru_nomor_sttb : ''}</td>
             </tr>
             <tr>
               <td class="sub-label" colspan="2"><strong>1.2. Pindahan dari sekolah lain</strong></td>
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;a. Nama Sekolah Asal</td>
-              <td class="value">: ${s.pindahan_dari_sekolah_lain_nama_sekolah_asal || 'sd asal'}</td>
+              <td class="value">: ${s.pindahan_dari_sekolah_lain_nama_sekolah_asal || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;b. Dari Kelas</td>
@@ -638,13 +689,13 @@ function showDetail(index) {
             </tr>
             <tr>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;c. Diterima Tanggal</td>
-              <td class="value">: ${formatDate(s.pindahan_dari_sekolah_lain_diterima_tanggal) || 'Saturday, 10 December 2018'}</td>
+              <td class="value">: ${formatDate(s.pindahan_dari_sekolah_lain_diterima_tanggal) || '—'}</td>
             </tr>
             <tr>
               <td class="numbering"></td>
               <td class="label"></td>
               <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;d. Di Kelas</td>
-              <td class="value">: ${s.pindahan_dari_sekolah_lain_di_kelas || '4'}</td>
+              <td class="value">: ${s.pindahan_dari_sekolah_lain_di_kelas || '—'}</td>
             </tr>
             
             <!-- 2. Keadaan Jasmani -->
@@ -652,23 +703,23 @@ function showDetail(index) {
               <td class="numbering" rowspan="5">2.</td>
               <td class="label" rowspan="5">Keadaan Jasmani</td>
               <td class="sub-label">a. TAHUN</td>
-              <td class="value">: —</td>
+              <td class="value">: ${s.keadaan_jasmani_tahun || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. BERAT BADAN</td>
-              <td class="value">: —</td>
+              <td class="value">: ${s.keadaan_jasmani_berat_badan || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">c. TINGGI BADAN</td>
-              <td class="value">: —</td>
+              <td class="value">: ${s.keadaan_jasmani_tinggi_badan || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">d. PENYAKIT</td>
-              <td class="value">: —</td>
+              <td class="value">: ${s.penyakit_yang_pernah_diderita || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">e. KELAINAN JASMANI</td>
-              <td class="value">: —</td>
+              <td class="value">: ${s.keadaan_jasmani_kelainan_jasmani || '—'}</td>
             </tr>
 
             <!-- Section D Header -->
@@ -678,7 +729,7 @@ function showDetail(index) {
             <tr>
               <td class="numbering"></td>
               <td class="label" colspan="2">a. Jenis Bea Siswa</td>
-              <td class="value">: ${s.jenis_bea_siswa || 'pip'}</td>
+              <td class="value">: ${s.jenis_bea_siswa || '—'}</td>
             </tr>
 
             <!-- Section E Header -->
@@ -691,11 +742,11 @@ function showDetail(index) {
               <td class="numbering" rowspan="2">1.</td>
               <td class="label" rowspan="2">Tamat Belajar</td>
               <td class="sub-label">a. Tahun Tamat</td>
-              <td class="value">: ${s.tamat_belajar_tahun || '2012'}</td>
+              <td class="value">: ${s.tamat_belajar_tahun || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Melanjutkan ke Sekolah</td>
-              <td class="value">: ${s.tamat_belajar_melanjutkan_ke_sekolah || 'smp'}</td>
+              <td class="value">: ${s.tamat_belajar_melanjutkan_ke_sekolah || '—'}</td>
             </tr>
             
             <!-- 2. Pindah Ke Sekolah -->
@@ -703,19 +754,19 @@ function showDetail(index) {
               <td class="numbering" rowspan="4">2.</td>
               <td class="label" rowspan="4">Pindah Ke Sekolah</td>
               <td class="sub-label">a. Dari Kelas</td>
-              <td class="value">: ${s.pindah_sekolah_dari_kelas || '6'}</td>
+              <td class="value">: ${s.pindah_sekolah_dari_kelas || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Ke Sekolah</td>
-              <td class="value">: ${s.pindah_sekolah_ke_sekolah || '1'}</td>
+              <td class="value">: ${s.pindah_sekolah_ke_sekolah || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">c. Ke Kelas</td>
-              <td class="value">: ${s.pindah_sekolah_kelas || '2'}</td>
+              <td class="value">: ${s.pindah_sekolah_kelas || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">d. Tanggal</td>
-              <td class="value">: ${formatDate(s.pindah_sekolah_tanggal) || '2 February 2010'}</td>
+              <td class="value">: ${formatDate(s.pindah_sekolah_tanggal) || '—'}</td>
             </tr>
             
             <!-- 3. Keluar Sekolah -->
@@ -723,7 +774,7 @@ function showDetail(index) {
               <td class="numbering" rowspan="2">3.</td>
               <td class="label" rowspan="2">Keluar Sekolah</td>
               <td class="sub-label">a. Tanggal</td>
-              <td class="value">: ${formatDate(s.keluar_sekolah_tanggal) || '3 June 2018'}</td>
+              <td class="value">: ${formatDate(s.keluar_sekolah_tanggal) || '—'}</td>
             </tr>
             <tr>
               <td class="sub-label">b. Alasan</td>
