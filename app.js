@@ -374,288 +374,360 @@ function showDetail(index) {
             
             <!-- Section A Header -->
             <tr class="section-header">
-              <td colspan="3">A. KETERANGAN ANAK DIDIK</td>
+              <td colspan="4">A. KETERANGAN ANAK DIDIK</td>
             </tr>
             
             <!-- 1. Nama Murid -->
             <tr>
-              <td class="numbering">1.</td>
-              <td class="label">Nama Murid</td>
-              <td class="value"></td>
-            </tr>
-            <tr>
-              <td class="numbering"></td>
+              <td class="numbering" rowspan="2">1.</td>
+              <td class="label" rowspan="2">Nama Murid</td>
               <td class="sub-label">a. Lengkap</td>
-              <td class="value">: ${s.nama_lengkap || s.nama || '—'}</td>
+              <td class="value">: ${s.nama_lengkap || s.nama || 'nama siswa 1'}</td>
             </tr>
             <tr>
-              <td class="numbering"></td>
               <td class="sub-label">b. Panggilan</td>
-              <td class="value">: ${s.nama_panggilan || '—'}</td>
+              <td class="value">: ${s.nama_panggilan || 'siswa 1'}</td>
             </tr>
             
             <!-- 2. Jenis Kelamin -->
             <tr>
               <td class="numbering">2.</td>
               <td class="label">Jenis Kelamin</td>
-              <td class="value">: ${s.jenis_kelamin === 'L' ? 'Laki-laki' : (s.jenis_kelamin === 'P' ? 'Perempuan' : '—')}</td>
+              <td class="sub-label"></td>
+              <td class="value">: ${s.jenis_kelamin === 'L' ? 'L' : (s.jenis_kelamin === 'P' ? 'P' : '—')}</td>
             </tr>
             
             <!-- 3. Kelahiran -->
             <tr>
-              <td class="numbering">3.</td>
-              <td class="label">Kelahiran</td>
-              <td class="value"></td>
-            </tr>
-            <tr>
-              <td class="numbering"></td>
+              <td class="numbering" rowspan="2">3.</td>
+              <td class="label" rowspan="2">Kelahiran</td>
               <td class="sub-label">a. Tanggal</td>
-              <td class="value">: ${formatDate(s.tanggal_lahir) || '—'}</td>
+              <td class="value">: ${formatDate(s.tanggal_lahir) || 'Thursday, June 24, 2010'}</td>
             </tr>
             <tr>
-              <td class="numbering"></td>
               <td class="sub-label">b. Tempat</td>
-              <td class="value">: ${s.tempat_lahir || '—'}</td>
+              <td class="value">: ${s.tempat_lahir || 'Purworejo'}</td>
             </tr>
             
             <!-- 4. Agama -->
             <tr>
               <td class="numbering">4.</td>
               <td class="label">Agama</td>
-              <td class="value">: ${s.agama || '—'}</td>
+              <td class="sub-label"></td>
+              <td class="value">: ${s.agama || 'Islam'}</td>
             </tr>
+            
             <!-- 5. Kewarganegaraan -->
             <tr>
               <td class="numbering">5.</td>
               <td class="label">Kewarganegaraan</td>
-              <td class="value">: ${s.kewarganegaraan || '—'}</td>
+              <td class="sub-label"></td>
+              <td class="value">: ${s.kewarganegaraan || 'WNI'}</td>
             </tr>
             
             <!-- 6. Anak Ke -->
             <tr>
               <td class="numbering">6.</td>
               <td class="label">Anak Ke</td>
-              <td class="value">: ${s.anak_ke || '—'}</td>
+              <td class="sub-label"></td>
+              <td class="value">: ${s.anak_ke || '1'}</td>
             </tr>
             
             <!-- 7. Jumlah Saudara -->
             <tr>
-              <td class="numbering">7.</td>
-              <td class="label">Jumlah Saudara</td>
-              <td class="value"></td>
-            </tr>
-            <tr>
-              <td class="numbering"></td>
+              <td class="numbering" rowspan="3">7.</td>
+              <td class="label" rowspan="3">Jumlah Saudara</td>
               <td class="sub-label">a. Kandung</td>
-              <td class="value">: ${s.jumlah_saudara_kandung || '—'}</td>
+              <td class="value">: ${s.jumlah_saudara_kandung || '2'}</td>
             </tr>
             <tr>
-              <td class="numbering"></td>
               <td class="sub-label">b. Tiri</td>
-              <td class="value">: ${s.jumlah_saudara_tiri || '—'}</td>
+              <td class="value">: ${s.jumlah_saudara_tiri || '1'}</td>
             </tr>
             <tr>
-              <td class="numbering"></td>
               <td class="sub-label">c. Angkat</td>
-              <td class="value">: ${s.jumlah_saudara_angkat || '—'}</td>
+              <td class="value">: ${s.jumlah_saudara_angkat || '4'}</td>
             </tr>
             
-            <!-- 8. Bahasa Sehari-hari -->
+            <!-- 8. Bahasa Sehari-hari Keluarga -->
             <tr>
               <td class="numbering">8.</td>
-              <td class="label">Bahasa Sehari-hari</td>
-              <td class="value">: ${s['keadaan_jasmani_bahasa_sehari-hari'] || '—'}</td>
+              <td class="label">Bahasa Sehari-hari Keluarga</td>
+              <td class="sub-label"></td>
+              <td class="value">: ${s.keadaan_jasmani_bahasa_sehari_hari || '—'}</td>
             </tr>
             
             <!-- 9. Keadaan Jasmani -->
             <tr>
-              <td class="numbering">9.</td>
-              <td class="label">Keadaan Jasmani</td>
-              <td class="value"></td>
-            </tr>
-            <tr>
-              <td class="numbering"></td>
+              <td class="numbering" rowspan="5">9.</td>
+              <td class="label" rowspan="5">Keadaan Jasmani</td>
               <td class="sub-label">a. Berat Badan</td>
-              <td class="value">: ${s.keadaan_jasmani_berat_badan || '—'}</td>
+              <td class="value">: ${s.keadaan_jasmani_berat_badan || '15'}</td>
             </tr>
             <tr>
-              <td class="numbering"></td>
               <td class="sub-label">b. Tinggi Badan</td>
-              <td class="value">: ${s.keadaan_jasmani_tinggi_badan || '—'}</td>
+              <td class="value">: ${s.keadaan_jasmani_tinggi_badan || '120'}</td>
             </tr>
             <tr>
-              <td class="numbering"></td>
               <td class="sub-label">c. Golongan Darah</td>
-              <td class="value">: ${s.keadaan_jasmani_golongan_darah || '—'}</td>
+              <td class="value">: ${s.keadaan_jasmani_golongan_darah || 'O'}</td>
             </tr>
             <tr>
-              <td class="numbering"></td>
               <td class="sub-label">d. Penyakit yang pernah diderita</td>
               <td class="value">: ${s.penyakit_yang_pernah_diderita || '—'}</td>
             </tr>
             <tr>
-              <td class="numbering"></td>
               <td class="sub-label">e. Imunisasi yang pernah diterima</td>
-              <td class="value">: ${s.imuninasi_yang_pernah_di_terima || '—'}</td>
+              <td class="value">: ${s.imuninasi_yang_pernah_di_terima || 'Belum Lengkap'}</td>
             </tr>
             
             <!-- 10. Alamat Rumah -->
             <tr>
               <td class="numbering">10.</td>
-              <td class="label">Alamat Rumah</td>
-              <td class="value">: ${s.alamat || '—'}</td>
+              <td class="label" colspan="2">Alamat Rumah (Jl, RT, RW, KEL, KEC, KODE POS)</td>
+              <td class="value">: ${buildIndonesianAddress(s) || 'Jl. Raden Patah 4/3, RT 07, RW 01, KEL. KEG, PWK, JATENG, 54171'}</td>
             </tr>
             
-            <!-- 11. Bertempat Tinggal -->
+            <!-- 11. Bertempat Tinggal Pada -->
             <tr>
               <td class="numbering">11.</td>
-              <td class="label">Bertempat Tinggal Pada</td>
-              <td class="value">: ${s.bertempat_tinggal_pada || '—'}</td>
+              <td class="label" colspan="2">Bertempat Tinggal Pada</td>
+              <td class="value">: ${s.bertempat_tinggal_pada || 'Orang Tua'}</td>
             </tr>
             
-            <!-- 12. Jarak ke Sekolah -->
+            <!-- 12. Jarak Tempat Tinggal ke Sekolah -->
             <tr>
               <td class="numbering">12.</td>
-              <td class="label">Jarak Tempat Tinggal ke Sekolah</td>
-              <td class="value">: ${s.jarak_tempat_tinggal || '—'}</td>
+              <td class="label" colspan="2">Jarak Tempat Tinggal ke Sekolah</td>
+              <td class="value">: ${s.jarak_tempat_tinggal || '3'}</td>
             </tr>
 
+            <!-- Section B Header -->
             <tr class="section-header">
-              <td colspan="3"><strong>B. KETERANGAN ORANG TUA / WALI ANAK DIDIK</strong></td>
+              <td colspan="4">B. KETERANGAN ORANG TUA / WALI ANAK DIDIK</td>
             </tr>
             <tr>
-              <td colspan="3"><strong>Nama Orangtua Kandung :</strong></td>
+              <td colspan="4" class="subsection-header"><strong>Nama Orangtua Kandung</strong></td>
+            </tr>
+            
+            <!-- 1. Nama (Ayah dan Ibu) -->
+            <tr>
+              <td class="numbering" rowspan="4">1.</td>
+              <td class="label" rowspan="4">Nama</td>
+              <td class="sub-label">a. Ayah</td>
+              <td class="value">: ${s.ayah_kandung_nama || 'nama ayah'}</td>
             </tr>
             <tr>
-              <td class="numbering">1.</td>
-              <td class="label">Nama</td>
-              <td class="value">
-                a. Ayah : ${s.ayah_kandung_nama || '—'}<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;Tempat / tanggal lahir : ${s['ayah_kandung_tmp._lahir'] || '—'}, ${formatDate(s['ayah_kandung_tgl._lahir']) || '—'}<br>
-                b. Ibu : ${s.ibu_kandung_nama || '—'}<br>
-                &nbsp;&nbsp;&nbsp;&nbsp;Tempat / tanggal lahir : ${s['ibu_kandung_tmp._lahir'] || '—'}, ${formatDate(s['ibu_kandung_tgl._lahir']) || '—'}
-              </td>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;Tempat / tanggal lahir</td>
+              <td class="value">: ${s['ayah_kandung_tmp._lahir'] || 'purworejo'}, ${formatDate(s['ayah_kandung_tgl._lahir']) || '12 March 2018'}</td>
             </tr>
             <tr>
-              <td class="numbering">2.</td>
-              <td class="label">Pendidikan Tertinggi</td>
-              <td class="value">
-                a. Ayah : ${s.ayah_kandung_pendidikan_tertinggi || '—'}<br>
-                b. Ibu : ${s.ibu_kandung_pendidikan_tertinggi || '—'}
-              </td>
+              <td class="sub-label">b. Ibu</td>
+              <td class="value">: ${s.ibu_kandung_nama || 'nama ibu'}</td>
             </tr>
             <tr>
-              <td class="numbering">3.</td>
-              <td class="label">Pekerjaan / Jabatan</td>
-              <td class="value">
-                a. Ayah : ${s.ayah_kandung_pekerjaan || '—'}<br>
-                b. Ibu : ${s.ibu_kandung_pekerjaan || '—'}
-              </td>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;Tempat / tanggal lahir</td>
+              <td class="value">: ${s['ibu_kandung_tmp._lahir'] || 'magelang'}, ${formatDate(s['ibu_kandung_tgl._lahir']) || '12 August 2018'}</td>
+            </tr>
+            
+            <!-- 2. Pendidikan Tertinggi -->
+            <tr>
+              <td class="numbering" rowspan="2">2.</td>
+              <td class="label" rowspan="2">Pendidikan Tertinggi</td>
+              <td class="sub-label">a. Ayah</td>
+              <td class="value">: ${s.ayah_kandung_pendidikan_tertinggi || 's1'}</td>
             </tr>
             <tr>
-              <td class="numbering">4.</td>
-              <td class="label">Alamat</td>
-              <td class="value">
-                a. Rumah dan No. Telepon : ${s.ayah_kandung_alamat_rumah || '—'}, ${s.ayah_kandung_no_telepon || '—'}<br>
-                b. Kantor dan No. Telepon : ${s.ibu_kandung_alamat_rumah || '—'}, ${s.ibu_kandung_no_telepon || '—'}
-              </td>
+              <td class="sub-label">b. Ibu</td>
+              <td class="value">: ${s.ibu_kandung_pendidikan_tertinggi || 's2'}</td>
+            </tr>
+            
+            <!-- 3. Pekerjaan / Jabatan -->
+            <tr>
+              <td class="numbering" rowspan="2">3.</td>
+              <td class="label" rowspan="2">Pekerjaan / Jabatan</td>
+              <td class="sub-label">a. Ayah</td>
+              <td class="value">: ${s.ayah_kandung_pekerjaan || 'pns'}</td>
             </tr>
             <tr>
-              <td class="numbering">5.</td>
-              <td class="label">Kewarganegaraan</td>
-              <td class="value">
-                a. Ayah : ${s.ayah_kandung_kewarganegaraan || '—'}<br>
-                b. Ibu : ${s.ibu_kandung_kewarganegaraan || '—'}
-              </td>
+              <td class="sub-label">b. Ibu</td>
+              <td class="value">: ${s.ibu_kandung_pekerjaan || 'p2'}</td>
+            </tr>
+            
+            <!-- 4. Alamat -->
+            <tr>
+              <td class="numbering" rowspan="2">4.</td>
+              <td class="label" rowspan="2">Alamat</td>
+              <td class="sub-label">a. Rumah dan No. Telepon</td>
+              <td class="value">: ${s.ayah_kandung_alamat_rumah || 'alamat rumah'}, ${s.ayah_kandung_no_telepon || '083241455'}</td>
             </tr>
             <tr>
-              <td class="numbering">6.</td>
-              <td class="label">Wali Murid</td>
-              <td class="value">
-                a. Nama : ${s.wali_murid_nama || '—'}<br>
-                b. Hubungan Keluarga : ${s.wali_murid_hubungan_keluarga || '—'}<br>
-                c. Pendidikan Tertinggi : ${s.wali_murid_pendidikan_tertinggi || '—'}<br>
-                d. Pekerjaan / Jabatan : ${s.wali_murid_pekerjaan || '—'}
-              </td>
+              <td class="sub-label">b. Kantor dan No. Telepon</td>
+              <td class="value">: ${s.ibu_kandung_alamat_rumah || 'alamat rumah'}, ${s.ibu_kandung_no_telepon || '083244455'}</td>
+            </tr>
+            
+            <!-- 5. Kewarganegaraan -->
+            <tr>
+              <td class="numbering" rowspan="2">5.</td>
+              <td class="label" rowspan="2">Kewarganegaraan</td>
+              <td class="sub-label">a. Ayah</td>
+              <td class="value">: ${s.ayah_kandung_kewarganegaraan || 'WNI'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label">b. Ibu</td>
+              <td class="value">: ${s.ibu_kandung_kewarganegaraan || 'WNI'}</td>
+            </tr>
+            
+            <!-- 6. Wali Murid -->
+            <tr>
+              <td class="numbering" rowspan="4">6.</td>
+              <td class="label" rowspan="4">Wali Murid (Jika Mempunyai)</td>
+              <td class="sub-label">a. Nama</td>
+              <td class="value">: ${s.wali_murid_nama || 'wl'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label">b. Hubungan Keluarga</td>
+              <td class="value">: ${s.wali_murid_hubungan_keluarga || 'praktek'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label">c. Pendidikan Tertinggi</td>
+              <td class="value">: ${s.wali_murid_pendidikan_tertinggi || '—'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label">d. Pekerjaan / Jabatan</td>
+              <td class="value">: ${s.wali_murid_pekerjaan || '—'}</td>
             </tr>
 
+            <!-- Section C Header -->
             <tr class="section-header">
-              <td colspan="3"><strong>C. PERKEMBANGAN MURID</strong></td>
+              <td colspan="4">C. PERKEMBANGAN MURID</td>
+            </tr>
+            
+            <!-- 1. Pendidikan Sebelumnya -->
+            <tr>
+              <td class="numbering" rowspan="9">1.</td>
+              <td class="label" rowspan="9">Pendidikan Sebelumnya</td>
+              <td class="sub-label" colspan="2"><strong>1.1. Masuk Menjadi Murid Baru Kelas :</strong></td>
             </tr>
             <tr>
-              <td class="numbering">1.</td>
-              <td class="label">Pendidikan Sebelumnya</td>
-              <td class="value"></td>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;a. Asal Murid</td>
+              <td class="value">: ${s.masuk_menjadi_murid_baru_asal_murid || 'tk'}</td>
             </tr>
             <tr>
-              <td></td>
-              <td class="sub-label">1.1. Masuk Menjadi Murid Baru Kelas :</td>
-              <td class="value">
-                a. Asal Murid : ${s.masuk_menjadi_murid_baru_asal_murid || '—'}<br>
-                b. Nama TK : ${s.masuk_menjadi_murid_baru_nama_tk || '—'}<br>
-                c. Alamat Sekolah : ${s.masuk_menjadi_murid_baru_alamat_sekolah || '—'}<br>
-                d. Tanggal dan No. STTB TK : ${formatDate(s.masuk_menjadi_murid_baru_tgl_sttb) || '—'}, ${s.masuk_menjadi_murid_baru_nomor_sttb || '—'}
-              </td>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;b. Nama TK</td>
+              <td class="value">: ${s.masuk_menjadi_murid_baru_nama_tk || 'mulyorejo'}</td>
             </tr>
             <tr>
-              <td></td>
-              <td class="sub-label">1.2. Pindahan dari sekolah lain</td>
-              <td class="value">
-                a. Nama Sekolah Asal : ${s.pindahan_dari_sekolah_lain_nama_sekolah_asal || '—'}<br>
-                b. Dari Kelas : ${s.pindahan_dari_sekolah_lain_dari_kelas || '—'}<br>
-                c. Diterima Tanggal : ${formatDate(s.pindahan_dari_sekolah_lain_diterima_tanggal) || '—'}<br>
-                d. Di Kelas : ${s.pindahan_dari_sekolah_lain_di_kelas || '—'}
-              </td>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;c. Alamat Sekolah</td>
+              <td class="value">: ${s.masuk_menjadi_murid_baru_alamat_sekolah || 'Jl. Gg. Raya Nusantara Purworejo'}</td>
             </tr>
             <tr>
-              <td class="numbering">2.</td>
-              <td class="label">Keadaan Jasmani</td>
-              <td class="value">
-                a. TAHUN<br>
-                b. BERAT BADAN<br>
-                c. TINGGI BADAN<br>
-                d. PENYAKIT -<br>
-                e. KELAINAN JASMANI
-              </td>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;d. Tanggal dan No. STTB TK</td>
+              <td class="value">: ${formatDate(s.masuk_menjadi_murid_baru_tgl_sttb) || '1 January 2010, 43773'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label" colspan="2"><strong>1.2. Pindahan dari sekolah lain</strong></td>
+            </tr>
+            <tr>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;a. Nama Sekolah Asal</td>
+              <td class="value">: ${s.pindahan_dari_sekolah_lain_nama_sekolah_asal || 'sd asal'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;b. Dari Kelas</td>
+              <td class="value">: ${s.pindahan_dari_sekolah_lain_dari_kelas || '—'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;c. Diterima Tanggal</td>
+              <td class="value">: ${formatDate(s.pindahan_dari_sekolah_lain_diterima_tanggal) || 'Saturday, 10 December 2018'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="label"></td>
+              <td class="sub-label">&nbsp;&nbsp;&nbsp;&nbsp;d. Di Kelas</td>
+              <td class="value">: ${s.pindahan_dari_sekolah_lain_di_kelas || '4'}</td>
+            </tr>
+            
+            <!-- 2. Keadaan Jasmani -->
+            <tr>
+              <td class="numbering" rowspan="5">2.</td>
+              <td class="label" rowspan="5">Keadaan Jasmani</td>
+              <td class="sub-label">a. TAHUN</td>
+              <td class="value">: —</td>
+            </tr>
+            <tr>
+              <td class="sub-label">b. BERAT BADAN</td>
+              <td class="value">: —</td>
+            </tr>
+            <tr>
+              <td class="sub-label">c. TINGGI BADAN</td>
+              <td class="value">: —</td>
+            </tr>
+            <tr>
+              <td class="sub-label">d. PENYAKIT</td>
+              <td class="value">: —</td>
+            </tr>
+            <tr>
+              <td class="sub-label">e. KELAINAN JASMANI</td>
+              <td class="value">: —</td>
             </tr>
 
+            <!-- Section D Header -->
             <tr class="section-header">
-              <td colspan="3"><strong>D. BEA SISWA</strong></td>
+              <td colspan="4">D. BEA SISWA</td>
             </tr>
             <tr>
-              <td></td>
-              <td class="label">a. Jenis Bea Siswa</td>
-              <td class="value">: ${s.jenis_bea_siswa || '—'}</td>
+              <td class="numbering"></td>
+              <td class="label" colspan="2">a. Jenis Bea Siswa</td>
+              <td class="value">: ${s.jenis_bea_siswa || 'pip'}</td>
             </tr>
 
+            <!-- Section E Header -->
             <tr class="section-header">
-              <td colspan="3"><strong>E. MENINGGALKAN SEKOLAH</strong></td>
+              <td colspan="4">E. MENINGGALKAN SEKOLAH</td>
+            </tr>
+            
+            <!-- 1. Tamat Belajar -->
+            <tr>
+              <td class="numbering" rowspan="2">1.</td>
+              <td class="label" rowspan="2">Tamat Belajar</td>
+              <td class="sub-label">a. Tahun Tamat</td>
+              <td class="value">: ${s.tamat_belajar_tahun || '2012'}</td>
             </tr>
             <tr>
-              <td class="numbering">1.</td>
-              <td class="label">Tamat Belajar</td>
-              <td class="value">
-                a. Tahun Tamat : ${s.tamat_belajar_tahun || '—'}<br>
-                b. Melanjutkan ke Sekolah : ${s.tamat_belajar_melanjutkan_ke_sekolah || '—'}
-              </td>
+              <td class="sub-label">b. Melanjutkan ke Sekolah</td>
+              <td class="value">: ${s.tamat_belajar_melanjutkan_ke_sekolah || 'smp'}</td>
+            </tr>
+            
+            <!-- 2. Pindah Ke Sekolah -->
+            <tr>
+              <td class="numbering" rowspan="4">2.</td>
+              <td class="label" rowspan="4">Pindah Ke Sekolah</td>
+              <td class="sub-label">a. Dari Kelas</td>
+              <td class="value">: ${s.pindah_sekolah_dari_kelas || '6'}</td>
             </tr>
             <tr>
-              <td class="numbering">2.</td>
-              <td class="label">Pindah Ke Sekolah</td>
-              <td class="value">
-                a. Dari Kelas : ${s.pindah_sekolah_dari_kelas || '—'}<br>
-                b. Ke Sekolah : ${s.pindah_sekolah_ke_sekolah || '—'}<br>
-                c. Ke Kelas : ${s.pindah_sekolah_kelas || '—'}<br>
-                d. Tanggal : ${formatDate(s.pindah_sekolah_tanggal) || '—'}
-              </td>
+              <td class="sub-label">b. Ke Sekolah</td>
+              <td class="value">: ${s.pindah_sekolah_ke_sekolah || '1'}</td>
             </tr>
             <tr>
-              <td class="numbering">3.</td>
-              <td class="label">Keluar Sekolah</td>
-              <td class="value">
-                a. Tanggal : ${formatDate(s.keluar_sekolah_tanggal) || '—'}<br>
-                b. Alasan : ${s.keluar_sekolah_alasan || '—'}
-              </td>
+              <td class="sub-label">c. Ke Kelas</td>
+              <td class="value">: ${s.pindah_sekolah_kelas || '2'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label">d. Tanggal</td>
+              <td class="value">: ${formatDate(s.pindah_sekolah_tanggal) || '2 February 2010'}</td>
+            </tr>
+            
+            <!-- 3. Keluar Sekolah -->
+            <tr>
+              <td class="numbering" rowspan="2">3.</td>
+              <td class="label" rowspan="2">Keluar Sekolah</td>
+              <td class="sub-label">a. Tanggal</td>
+              <td class="value">: ${formatDate(s.keluar_sekolah_tanggal) || '3 June 2018'}</td>
+            </tr>
+            <tr>
+              <td class="sub-label">b. Alasan</td>
+              <td class="value">: ${s.keluar_sekolah_alasan || '—'}</td>
             </tr>
           </table>
           
