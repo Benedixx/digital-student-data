@@ -9,6 +9,88 @@ let dataSiswa = [];
 
 let currentResults = [];
 
+// Function to build Indonesian address format
+function buildIndonesianAddress(obj) {
+  const addressParts = [];
+  
+  console.log('Building address for:', obj.nama || 'Unknown');
+  console.log('Address fields available:', {
+    jalan: obj.alamat_rumah_jalan,
+    rt: obj.alamat_rumah_rt,
+    rw: obj.alamat_rumah_rw,
+    kelurahan: obj.alamat_rumah_kelurahan,
+    kecamatan: obj.alamat_rumah_kecamatan,
+    kabupaten: obj.alamat_rumah_kabupaten,
+    provinsi: obj.alamat_rumah_provinsi,
+    kode_pos: obj.alamat_rumah_kode_pos
+  });
+  
+  // 1. Jalan / alamat utama
+  if (obj.alamat_rumah_jalan && obj.alamat_rumah_jalan.trim()) {
+    addressParts.push(obj.alamat_rumah_jalan.trim());
+  }
+  
+  // 2. RT dan RW
+  const rt = obj.alamat_rumah_rt || obj.rt || '';
+  const rw = obj.alamat_rumah_rw || obj.rw || '';
+  if (rt || rw) {
+    let rtRw = '';
+    if (rt && rt.toString().trim()) {
+      rtRw += `RT ${rt.toString().trim().padStart(2, '0')}`;
+    }
+    if (rw && rw.toString().trim()) {
+      rtRw += `${rt ? ' ' : ''}RW ${rw.toString().trim().padStart(2, '0')}`;
+    }
+    if (rtRw) addressParts.push(rtRw);
+  }
+  
+  // 3. Kelurahan
+  if (obj.alamat_rumah_kelurahan && obj.alamat_rumah_kelurahan.trim()) {
+    const kelurahan = obj.alamat_rumah_kelurahan.trim();
+    const kelType = kelurahan.toLowerCase().includes('kelurahan') || 
+                   kelurahan.toLowerCase().includes('desa') ? '' : 'Kelurahan ';
+    addressParts.push(`${kelType}${kelurahan}`);
+  }
+  
+  // 4. Kecamatan
+  if (obj.alamat_rumah_kecamatan && obj.alamat_rumah_kecamatan.trim()) {
+    const kecamatan = obj.alamat_rumah_kecamatan.trim();
+    const kecType = kecamatan.toLowerCase().includes('kecamatan') ? '' : 'Kecamatan ';
+    addressParts.push(`${kecType}${kecamatan}`);
+  }
+  
+  // 5. Kabupaten/Kota
+  if (obj.alamat_rumah_kabupaten && obj.alamat_rumah_kabupaten.trim()) {
+    const kabupaten = obj.alamat_rumah_kabupaten.trim();
+    let kotaFormatted = kabupaten;
+    
+    if (!kabupaten.toLowerCase().includes('kota') && 
+        !kabupaten.toLowerCase().includes('kabupaten') && 
+        !kabupaten.toLowerCase().includes('kab.')) {
+      // Auto-detect city vs regency
+      const cities = ['jakarta', 'surabaya', 'bandung', 'medan', 'semarang', 'makassar', 
+                     'palembang', 'tangerang', 'bekasi', 'depok', 'yogyakarta', 'malang'];
+      const isCity = cities.some(city => kabupaten.toLowerCase().includes(city));
+      kotaFormatted = isCity ? `Kota ${kabupaten}` : `Kab. ${kabupaten}`;
+    }
+    addressParts.push(kotaFormatted);
+  }
+  
+  // 6. Provinsi
+  if (obj.alamat_rumah_provinsi && obj.alamat_rumah_provinsi.trim()) {
+    addressParts.push(obj.alamat_rumah_provinsi.trim());
+  }
+  
+  // 7. Kode Pos
+  if (obj.alamat_rumah_kode_pos && obj.alamat_rumah_kode_pos.toString().trim()) {
+    addressParts.push(obj.alamat_rumah_kode_pos.toString().trim());
+  }
+  
+  const result = addressParts.length > 0 ? addressParts.join(', ') : '';
+  console.log('Built complete address:', result);
+  return result;
+}
+
 // Load data from Excel
 async function loadData() {
   try {
@@ -108,7 +190,9 @@ async function loadData() {
           obj.ttl = '';
         }
       }
-      obj.alamat = obj.alamat_rumah_jalan || obj.alamat_rumah || obj.alamat || '';
+
+      // Consolidate Indonesian address format
+      obj.alamat = buildIndonesianAddress(obj);
       obj.kelas = obj.kelas || '';
 
       return obj;
@@ -125,7 +209,25 @@ async function loadData() {
     console.log('Loaded columns example:', dataSiswa[0] || {});
     console.log('Sample names:', dataSiswa.slice(0, 5).map(s => s.nama));
     console.log('First student name:', dataSiswa[0]?.nama);
-    console.log('Contains nama siswa 1?', dataSiswa.some(s => s.nama && s.nama.includes('nama siswa 1')));
+    console.log('Address fields check:', Object.keys(dataSiswa[0] || {}).filter(key => 
+      key.toLowerCase().includes('alamat') || 
+      key.toLowerCase().includes('jalan') || 
+      key.toLowerCase().includes('rt') || 
+      key.toLowerCase().includes('rw') ||
+      key.toLowerCase().includes('kelurahan') ||
+      key.toLowerCase().includes('kecamatan') ||
+      key.toLowerCase().includes('kota') ||
+      key.toLowerCase().includes('provinsi')
+    ));
+    console.log('Sample address data:', dataSiswa[0] ? {
+      original_address: dataSiswa[0].alamat,
+      available_fields: Object.keys(dataSiswa[0]).filter(key => 
+        key.toLowerCase().includes('alamat') || 
+        key.toLowerCase().includes('jalan') || 
+        key.toLowerCase().includes('rt') || 
+        key.toLowerCase().includes('rw')
+      ).map(key => ({ [key]: dataSiswa[0][key] }))
+    } : 'No data');
   } catch (e) {
     console.error('Error loading data:', e);
     console.error('Using fallback data...');
@@ -227,257 +329,339 @@ function showDetail(index) {
   document.getElementById("searchPage").classList.add("hidden");
   document.getElementById("detailPage").classList.remove("hidden");
 
-  // kategori (prefix matching case-insensitive)
-  const categories = {
-    "jumlah_saudara": "Jumlah Saudara",
-    "alamat_rumah": "Alamat Rumah",
-    "ayah_kandung": "Data Ayah Kandung",
-    "ibu_kandung": "Data Ibu Kandung", 
-    "wali_murid": "Data Wali Murid",
-    "keadaan_jasmani": "Keadaan Jasmani",
-    "masuk_menjadi_murid_baru": "Data Masuk Sekolah",
-    "pindahan_dari_sekolah_lain": "Riwayat Pindahan",
-    "pindah_sekolah": "Riwayat Pindah Sekolah",
-    "keluar_sekolah": "Riwayat Keluar"
-  };
-  
-  function prettifyLabel(k, categoryPrefix = '') {
-    let label = k.replace(/_/g, ' ').replace(/\b\w/g, ch => ch.toUpperCase());
+  // Format date to Indonesian format
+  function formatDate(dateStr) {
+    if (!dateStr) return '';
+    const date = new Date(dateStr);
+    if (isNaN(date.getTime())) return dateStr;
     
-    // Remove repetitive prefixes when we're in a grouped category
-    if (categoryPrefix) {
-      const prefixesToRemove = [
-        'Ayah Kandung ',
-        'Ibu Kandung ',
-        'Wali Murid ',
-        'Alamat Rumah ',
-        'Keadaan Jasmani ',
-        'Masuk Menjadi Murid Baru ',
-        'Pindahan Dari Sekolah Lain ',
-        'Pindah Sekolah ',
-        'Keluar Sekolah ',
-        'Jumlah Saudara '
-      ];
-      
-      for (let prefix of prefixesToRemove) {
-        if (label.startsWith(prefix)) {
-          label = label.substring(prefix.length);
-          break;
-        }
-      }
-    }
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
     
-    return label;
+    const dayName = days[date.getDay()];
+    const monthName = months[date.getMonth()];
+    const day = date.getDate();
+    const year = date.getFullYear();
+    
+    return `${dayName}, ${monthName} ${day}, ${year}`;
   }
-
-  let grouped = {};
-  let singles = {};
-
-  Object.keys(s).forEach(key => {
-    if (key === 'foto') return; // foto ditampilkan sendiri
-    let matched = false;
-    const low = key.toLowerCase();
-    for (let prefix in categories) {
-      if (low.startsWith(prefix)) {
-        if (!grouped[prefix]) grouped[prefix] = [];
-        grouped[prefix].push({ 
-          label: prettifyLabel(key, prefix), 
-          value: s[key] 
-        });
-        matched = true;
-        break;
-      }
-    }
-    if (!matched) {
-      singles[key] = s[key];
-    }
-  });
-
-  // render UI with compact responsive design
+  
+  // Create full-page Buku Induk format matching traditional Indonesian format
   let detailHTML = `
-    <div class="student-profile">
-      <!-- Compact Header Section -->
-      <div class="profile-header">
-        <div class="profile-image">
-          <img src="${s.foto}" alt="Foto ${s.nama}" class="student-photo">
+    <div class="buku-induk-page">
+      <!-- Header with title and NIS/NISN -->
+      <div class="page-header">
+        <div class="title-section">
+          <h2>BUKU INDUK SISWA</h2>
         </div>
-        <div class="profile-info">
-          <h1 class="student-name">${s.nama || '—'}</h1>
-          <div class="basic-info">
-            ${s.nis ? `<span class="info-item"><strong>NIS:</strong> ${s.nis}</span>` : ''}
-            ${s.kelas ? `<span class="info-item"><strong>Kelas:</strong> ${s.kelas}</span>` : ''}
-            ${s.ttl ? `<span class="info-item"><strong>TTL:</strong> ${s.ttl}</span>` : ''}
-            ${s.jenis_kelamin ? `<span class="info-item"><strong>JK:</strong> ${s.jenis_kelamin === 'L' ? 'Laki-laki' : 'Perempuan'}</span>` : ''}
+        <div class="header-info">
+          <div class="nis-box">
+            <span>NIS :</span>
+            <span class="number-box">${s.nis || s.no_induk || ''}</span>
+          </div>
+          <div class="nisn-box">
+            <span>NISN :</span>
+            <span class="number-box">${s.nisn || ''}</span>
           </div>
         </div>
       </div>
 
-      <!-- Tabbed Content for Better Organization -->
-      <div class="tab-container">
-        <div class="tab-nav">
-          <button class="tab-btn active" onclick="switchTab('general')">📋 Umum</button>
-          <button class="tab-btn" onclick="switchTab('family')">👨‍👩‍👧‍👦 Keluarga</button>
-          <button class="tab-btn" onclick="switchTab('school')">🎓 Sekolah</button>
-          <button class="tab-btn" onclick="switchTab('health')">🏥 Kesehatan</button>
-        </div>
+      <!-- Main content table with photo boxes -->
+      <div class="main-content">
+        <div class="table-with-photos">
+          <table class="buku-induk-table">
+            
+            <!-- Section A Header -->
+            <tr class="section-header">
+              <td colspan="3">A. KETERANGAN ANAK DIDIK</td>
+            </tr>
+            
+            <!-- 1. Nama Murid -->
+            <tr>
+              <td class="numbering">1.</td>
+              <td class="label">Nama Murid</td>
+              <td class="value"></td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">a. Lengkap</td>
+              <td class="value">: ${s.nama_lengkap || s.nama || '—'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">b. Panggilan</td>
+              <td class="value">: ${s.nama_panggilan || '—'}</td>
+            </tr>
+            
+            <!-- 2. Jenis Kelamin -->
+            <tr>
+              <td class="numbering">2.</td>
+              <td class="label">Jenis Kelamin</td>
+              <td class="value">: ${s.jenis_kelamin === 'L' ? 'Laki-laki' : (s.jenis_kelamin === 'P' ? 'Perempuan' : '—')}</td>
+            </tr>
+            
+            <!-- 3. Kelahiran -->
+            <tr>
+              <td class="numbering">3.</td>
+              <td class="label">Kelahiran</td>
+              <td class="value"></td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">a. Tanggal</td>
+              <td class="value">: ${formatDate(s.tanggal_lahir) || '—'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">b. Tempat</td>
+              <td class="value">: ${s.tempat_lahir || '—'}</td>
+            </tr>
+            
+            <!-- 4. Agama -->
+            <tr>
+              <td class="numbering">4.</td>
+              <td class="label">Agama</td>
+              <td class="value">: ${s.agama || '—'}</td>
+            </tr>
+            <!-- 5. Kewarganegaraan -->
+            <tr>
+              <td class="numbering">5.</td>
+              <td class="label">Kewarganegaraan</td>
+              <td class="value">: ${s.kewarganegaraan || '—'}</td>
+            </tr>
+            
+            <!-- 6. Anak Ke -->
+            <tr>
+              <td class="numbering">6.</td>
+              <td class="label">Anak Ke</td>
+              <td class="value">: ${s.anak_ke || '—'}</td>
+            </tr>
+            
+            <!-- 7. Jumlah Saudara -->
+            <tr>
+              <td class="numbering">7.</td>
+              <td class="label">Jumlah Saudara</td>
+              <td class="value"></td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">a. Kandung</td>
+              <td class="value">: ${s.jumlah_saudara_kandung || '—'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">b. Tiri</td>
+              <td class="value">: ${s.jumlah_saudara_tiri || '—'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">c. Angkat</td>
+              <td class="value">: ${s.jumlah_saudara_angkat || '—'}</td>
+            </tr>
+            
+            <!-- 8. Bahasa Sehari-hari -->
+            <tr>
+              <td class="numbering">8.</td>
+              <td class="label">Bahasa Sehari-hari</td>
+              <td class="value">: ${s['keadaan_jasmani_bahasa_sehari-hari'] || '—'}</td>
+            </tr>
+            
+            <!-- 9. Keadaan Jasmani -->
+            <tr>
+              <td class="numbering">9.</td>
+              <td class="label">Keadaan Jasmani</td>
+              <td class="value"></td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">a. Berat Badan</td>
+              <td class="value">: ${s.keadaan_jasmani_berat_badan || '—'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">b. Tinggi Badan</td>
+              <td class="value">: ${s.keadaan_jasmani_tinggi_badan || '—'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">c. Golongan Darah</td>
+              <td class="value">: ${s.keadaan_jasmani_golongan_darah || '—'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">d. Penyakit yang pernah diderita</td>
+              <td class="value">: ${s.penyakit_yang_pernah_diderita || '—'}</td>
+            </tr>
+            <tr>
+              <td class="numbering"></td>
+              <td class="sub-label">e. Imunisasi yang pernah diterima</td>
+              <td class="value">: ${s.imuninasi_yang_pernah_di_terima || '—'}</td>
+            </tr>
+            
+            <!-- 10. Alamat Rumah -->
+            <tr>
+              <td class="numbering">10.</td>
+              <td class="label">Alamat Rumah</td>
+              <td class="value">: ${s.alamat || '—'}</td>
+            </tr>
+            
+            <!-- 11. Bertempat Tinggal -->
+            <tr>
+              <td class="numbering">11.</td>
+              <td class="label">Bertempat Tinggal Pada</td>
+              <td class="value">: ${s.bertempat_tinggal_pada || '—'}</td>
+            </tr>
+            
+            <!-- 12. Jarak ke Sekolah -->
+            <tr>
+              <td class="numbering">12.</td>
+              <td class="label">Jarak Tempat Tinggal ke Sekolah</td>
+              <td class="value">: ${s.jarak_tempat_tinggal || '—'}</td>
+            </tr>
 
-        <!-- General Tab -->
-        <div id="tab-general" class="tab-content active">
-          <div class="info-grid">
-  `;
+            <tr class="section-header">
+              <td colspan="3"><strong>B. KETERANGAN ORANG TUA / WALI ANAK DIDIK</strong></td>
+            </tr>
+            <tr>
+              <td colspan="3"><strong>Nama Orangtua Kandung :</strong></td>
+            </tr>
+            <tr>
+              <td class="numbering">1.</td>
+              <td class="label">Nama</td>
+              <td class="value">
+                a. Ayah : ${s.ayah_kandung_nama || '—'}<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;Tempat / tanggal lahir : ${s['ayah_kandung_tmp._lahir'] || '—'}, ${formatDate(s['ayah_kandung_tgl._lahir']) || '—'}<br>
+                b. Ibu : ${s.ibu_kandung_nama || '—'}<br>
+                &nbsp;&nbsp;&nbsp;&nbsp;Tempat / tanggal lahir : ${s['ibu_kandung_tmp._lahir'] || '—'}, ${formatDate(s['ibu_kandung_tgl._lahir']) || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td class="numbering">2.</td>
+              <td class="label">Pendidikan Tertinggi</td>
+              <td class="value">
+                a. Ayah : ${s.ayah_kandung_pendidikan_tertinggi || '—'}<br>
+                b. Ibu : ${s.ibu_kandung_pendidikan_tertinggi || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td class="numbering">3.</td>
+              <td class="label">Pekerjaan / Jabatan</td>
+              <td class="value">
+                a. Ayah : ${s.ayah_kandung_pekerjaan || '—'}<br>
+                b. Ibu : ${s.ibu_kandung_pekerjaan || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td class="numbering">4.</td>
+              <td class="label">Alamat</td>
+              <td class="value">
+                a. Rumah dan No. Telepon : ${s.ayah_kandung_alamat_rumah || '—'}, ${s.ayah_kandung_no_telepon || '—'}<br>
+                b. Kantor dan No. Telepon : ${s.ibu_kandung_alamat_rumah || '—'}, ${s.ibu_kandung_no_telepon || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td class="numbering">5.</td>
+              <td class="label">Kewarganegaraan</td>
+              <td class="value">
+                a. Ayah : ${s.ayah_kandung_kewarganegaraan || '—'}<br>
+                b. Ibu : ${s.ibu_kandung_kewarganegaraan || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td class="numbering">6.</td>
+              <td class="label">Wali Murid</td>
+              <td class="value">
+                a. Nama : ${s.wali_murid_nama || '—'}<br>
+                b. Hubungan Keluarga : ${s.wali_murid_hubungan_keluarga || '—'}<br>
+                c. Pendidikan Tertinggi : ${s.wali_murid_pendidikan_tertinggi || '—'}<br>
+                d. Pekerjaan / Jabatan : ${s.wali_murid_pekerjaan || '—'}
+              </td>
+            </tr>
 
-  // Organize data into tabs
-  const generalInfo = {};
-  const familyInfo = {};
-  const schoolInfo = {};
-  const healthInfo = {};
+            <tr class="section-header">
+              <td colspan="3"><strong>C. PERKEMBANGAN MURID</strong></td>
+            </tr>
+            <tr>
+              <td class="numbering">1.</td>
+              <td class="label">Pendidikan Sebelumnya</td>
+              <td class="value"></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td class="sub-label">1.1. Masuk Menjadi Murid Baru Kelas :</td>
+              <td class="value">
+                a. Asal Murid : ${s.masuk_menjadi_murid_baru_asal_murid || '—'}<br>
+                b. Nama TK : ${s.masuk_menjadi_murid_baru_nama_tk || '—'}<br>
+                c. Alamat Sekolah : ${s.masuk_menjadi_murid_baru_alamat_sekolah || '—'}<br>
+                d. Tanggal dan No. STTB TK : ${formatDate(s.masuk_menjadi_murid_baru_tgl_sttb) || '—'}, ${s.masuk_menjadi_murid_baru_nomor_sttb || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td></td>
+              <td class="sub-label">1.2. Pindahan dari sekolah lain</td>
+              <td class="value">
+                a. Nama Sekolah Asal : ${s.pindahan_dari_sekolah_lain_nama_sekolah_asal || '—'}<br>
+                b. Dari Kelas : ${s.pindahan_dari_sekolah_lain_dari_kelas || '—'}<br>
+                c. Diterima Tanggal : ${formatDate(s.pindahan_dari_sekolah_lain_diterima_tanggal) || '—'}<br>
+                d. Di Kelas : ${s.pindahan_dari_sekolah_lain_di_kelas || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td class="numbering">2.</td>
+              <td class="label">Keadaan Jasmani</td>
+              <td class="value">
+                a. TAHUN<br>
+                b. BERAT BADAN<br>
+                c. TINGGI BADAN<br>
+                d. PENYAKIT -<br>
+                e. KELAINAN JASMANI
+              </td>
+            </tr>
 
-  // Categorize singles
-  Object.keys(singles).forEach(key => {
-    if (!['nis', 'kelas', 'ttl', 'alamat', 'jenis_kelamin'].includes(key)) {
-      if (key.includes('agama') || key.includes('kewarganegaraan') || key.includes('anak_ke')) {
-        generalInfo[key] = singles[key];
-      } else {
-        generalInfo[key] = singles[key];
-      }
-    }
-  });
+            <tr class="section-header">
+              <td colspan="3"><strong>D. BEA SISWA</strong></td>
+            </tr>
+            <tr>
+              <td></td>
+              <td class="label">a. Jenis Bea Siswa</td>
+              <td class="value">: ${s.jenis_bea_siswa || '—'}</td>
+            </tr>
 
-  // Categorize grouped data
-  Object.keys(grouped).forEach(prefix => {
-    if (prefix.includes('ayah') || prefix.includes('ibu') || prefix.includes('wali') || prefix.includes('saudara')) {
-      familyInfo[prefix] = grouped[prefix];
-    } else if (prefix.includes('masuk') || prefix.includes('pindah') || prefix.includes('keluar') || prefix.includes('sekolah')) {
-      schoolInfo[prefix] = grouped[prefix];
-    } else if (prefix.includes('jasmani') || prefix.includes('kesehatan')) {
-      healthInfo[prefix] = grouped[prefix];
-    } else {
-      generalInfo['grouped_' + prefix] = grouped[prefix];
-    }
-  });
-
-  // Add address to general if exists
-  if (s.alamat) {
-    detailHTML += `<div class="info-item-grid"><strong>Alamat:</strong><span>${s.alamat}</span></div>`;
-  }
-
-  // General tab content
-  Object.keys(generalInfo).forEach(key => {
-    if (key.startsWith('grouped_')) {
-      const groupData = generalInfo[key];
-      groupData.forEach(f => {
-        if (f.value) {
-          detailHTML += `<div class="info-item-grid"><strong>${f.label}:</strong><span>${f.value}</span></div>`;
-        }
-      });
-    } else if (generalInfo[key]) {
-      detailHTML += `<div class="info-item-grid"><strong>${prettifyLabel(key)}:</strong><span>${generalInfo[key]}</span></div>`;
-    }
-  });
-
-  detailHTML += `
-          </div>
-        </div>
-
-        <!-- Family Tab -->
-        <div id="tab-family" class="tab-content">
-          <div class="family-grid">
-  `;
-
-  // Family sections
-  Object.keys(familyInfo).forEach(prefix => {
-    const categoryName = categories[prefix] || prettifyLabel(prefix);
-    const familyData = familyInfo[prefix];
-    
-    detailHTML += `
-      <div class="family-section">
-        <h4 class="family-title">${categoryName}</h4>
-        <div class="family-details">
-    `;
-    
-    familyData.forEach(f => {
-      if (f.value) {
-        detailHTML += `
-          <div class="family-item">
-            <span class="family-label">${f.label}</span>
-            <span class="family-value">${f.value}</span>
-          </div>
-        `;
-      }
-    });
-    
-    detailHTML += `</div></div>`;
-  });
-
-  detailHTML += `
-          </div>
-        </div>
-
-        <!-- School Tab -->
-        <div id="tab-school" class="tab-content">
-          <div class="school-grid">
-  `;
-
-  // School sections
-  Object.keys(schoolInfo).forEach(prefix => {
-    const categoryName = categories[prefix] || prettifyLabel(prefix);
-    const schoolData = schoolInfo[prefix];
-    
-    detailHTML += `
-      <div class="school-section">
-        <h4 class="school-title">${categoryName}</h4>
-        <div class="school-details">
-    `;
-    
-    schoolData.forEach(f => {
-      if (f.value) {
-        detailHTML += `
-          <div class="school-item">
-            <span class="school-label">${f.label}</span>
-            <span class="school-value">${f.value}</span>
-          </div>
-        `;
-      }
-    });
-    
-    detailHTML += `</div></div>`;
-  });
-
-  detailHTML += `
-          </div>
-        </div>
-
-        <!-- Health Tab -->
-        <div id="tab-health" class="tab-content">
-          <div class="health-grid">
-  `;
-
-  // Health sections
-  Object.keys(healthInfo).forEach(prefix => {
-    const categoryName = categories[prefix] || prettifyLabel(prefix);
-    const healthData = healthInfo[prefix];
-    
-    detailHTML += `
-      <div class="health-section">
-        <h4 class="health-title">${categoryName}</h4>
-        <div class="health-details">
-    `;
-    
-    healthData.forEach(f => {
-      if (f.value) {
-        detailHTML += `
-          <div class="health-item">
-            <span class="health-label">${f.label}</span>
-            <span class="health-value">${f.value}</span>
-          </div>
-        `;
-      }
-    });
-    
-    detailHTML += `</div></div>`;
-  });
-
-  detailHTML += `
+            <tr class="section-header">
+              <td colspan="3"><strong>E. MENINGGALKAN SEKOLAH</strong></td>
+            </tr>
+            <tr>
+              <td class="numbering">1.</td>
+              <td class="label">Tamat Belajar</td>
+              <td class="value">
+                a. Tahun Tamat : ${s.tamat_belajar_tahun || '—'}<br>
+                b. Melanjutkan ke Sekolah : ${s.tamat_belajar_melanjutkan_ke_sekolah || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td class="numbering">2.</td>
+              <td class="label">Pindah Ke Sekolah</td>
+              <td class="value">
+                a. Dari Kelas : ${s.pindah_sekolah_dari_kelas || '—'}<br>
+                b. Ke Sekolah : ${s.pindah_sekolah_ke_sekolah || '—'}<br>
+                c. Ke Kelas : ${s.pindah_sekolah_kelas || '—'}<br>
+                d. Tanggal : ${formatDate(s.pindah_sekolah_tanggal) || '—'}
+              </td>
+            </tr>
+            <tr>
+              <td class="numbering">3.</td>
+              <td class="label">Keluar Sekolah</td>
+              <td class="value">
+                a. Tanggal : ${formatDate(s.keluar_sekolah_tanggal) || '—'}<br>
+                b. Alasan : ${s.keluar_sekolah_alasan || '—'}
+              </td>
+            </tr>
+          </table>
+          
+          <!-- Single photo box with 3x4 aspect ratio -->
+          <div class="photo-box">
+            <img src="${s.foto || 'profil.png'}" alt="Foto ${s.nama}" class="student-photo">
           </div>
         </div>
       </div>
