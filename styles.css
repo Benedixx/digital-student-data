@@ -738,6 +738,50 @@ h1 {
     .main-content {
         gap: 20px;
     }
+    
+    /* Maintain photo positioning in print for both A3 and A4 */
+    .table-with-photos {
+        position: relative;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .buku-induk-table {
+        flex: 1;
+        max-width: calc(100% - 140px); /* Leave space for photo */
+    }
+    
+    .photo-box {
+        position: absolute;
+        right: 10px;
+        top: 0;
+        width: 120px;
+        height: 160px;
+        flex-shrink: 0;
+    }
+    
+    /* For A4 paper, reduce font and padding to fit better */
+    @page {
+        size: A4;
+        margin: 10mm;
+    }
+    
+    .buku-induk-table td {
+        font-size: 10px;
+        padding: 2px 4px;
+    }
+    
+    .numbering {
+        width: 30px;
+    }
+    
+    .label {
+        min-width: 150px;
+    }
+    
+    .sub-label {
+        min-width: 180px;
+    }
 }
 
 /* Mobile responsive */
@@ -853,4 +897,27 @@ h1 {
 
 .tab-content::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.5);
+}
+
+/* Print Styles */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+    
+    .detail-card {
+        page-break-inside: avoid;
+        box-shadow: none;
+        margin: 0;
+        padding: 20px;
+    }
+    
+    body {
+        background: white;
+    }
+    
+    #prestasiContent {
+        display: block !important;
+        page-break-before: always;
+    }
 }

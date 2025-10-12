@@ -33,8 +33,10 @@
   <!-- Detail Page -->
   <div id="detailPage" class="hidden">
     <div class="detail-card" id="detailContent"></div>
-    <div style="margin-top: 20px; text-align: center;">
+    <div class="detail-card" id="prestasiContent" style="display: none; margin-top: 30px; page-break-before: always;"></div>
+    <div style="margin-top: 20px; text-align: center;" class="no-print">
       <button class="btn" onclick="backToResults()">Kembali</button>
+      <button class="btn" id="togglePrestasiBtn" onclick="togglePrestasi()" style="background: #28a745;">📊 Tampilkan Prestasi</button>
       <button class="btn" onclick="logout()">Logout</button>
     </div>
   </div>

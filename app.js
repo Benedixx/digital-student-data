@@ -6,24 +6,14 @@ const PASSWORD = "123";
 
 // Dummy data siswa
 let dataSiswa = [];
+let dataPrestasi = [];
+let currentStudent = null; // Store current student for prestasi
 
 let currentResults = [];
 
 // Function to build Indonesian address format
 function buildIndonesianAddress(obj) {
   const addressParts = [];
-  
-  console.log('Building address for:', obj.nama || 'Unknown');
-  console.log('Address fields available:', {
-    jalan: obj.alamat_rumah_jalan,
-    rt: obj.alamat_rumah_rt,
-    rw: obj.alamat_rumah_rw,
-    kelurahan: obj.alamat_rumah_kelurahan,
-    kecamatan: obj.alamat_rumah_kecamatan,
-    kabupaten: obj.alamat_rumah_kabupaten,
-    provinsi: obj.alamat_rumah_provinsi,
-    kode_pos: obj.alamat_rumah_kode_pos
-  });
   
   // 1. Jalan / alamat utama
   if (obj.alamat_rumah_jalan && obj.alamat_rumah_jalan.trim()) {
@@ -87,48 +77,65 @@ function buildIndonesianAddress(obj) {
   }
   
   const result = addressParts.length > 0 ? addressParts.join(', ') : '';
-  console.log('Built complete address:', result);
   return result;
 }
 
 // Load data from Excel
 async function loadData() {
   try {
-    // pastiin filename sesuai file yang disajikan di server
-    console.log('Attempting to fetch Excel file...');
     const response = await fetch('student_data.xlsx');
-    console.log('Fetch response status:', response.status, response.statusText);
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     }
     
     const data = await response.arrayBuffer();
-    console.log('Excel file loaded, size:', data.byteLength, 'bytes');
     const workbook = XLSX.read(data, { type: 'array' });
 
-    // pakai sheet 'Data' kalau ada, kalo engga ambil sheet pertama
     const sheetName = workbook.SheetNames.includes('Data') ? 'Data' : workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
-    // Read data with headers (XLSX automatically uses first row as headers)
     const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
-    console.log('Raw data from Excel:', rawData.length, 'rows');
-    console.log('Sample raw data:', rawData.slice(0, 2));
-    console.log('Column headers:', rawData.length > 0 ? Object.keys(rawData[0]).slice(0, 10) : 'No data');
     
-    // Use all data (headers are already handled by sheet_to_json)
+    // Load prestasi data
+    try {
+      const prestasiResponse = await fetch('prestasi_data.xlsx');
+      if (prestasiResponse.ok) {
+        const prestasiData = await prestasiResponse.arrayBuffer();
+        const prestasiWorkbook = XLSX.read(prestasiData, { type: 'array' });
+        const prestasiSheetName = prestasiWorkbook.SheetNames[0];
+        const prestasiSheet = prestasiWorkbook.Sheets[prestasiSheetName];
+        const prestasiRawData = XLSX.utils.sheet_to_json(prestasiSheet, { defval: '' });
+        
+        // Normalize prestasi data keys
+        dataPrestasi = prestasiRawData.map(row => {
+          const obj = {};
+          Object.keys(row).forEach(k => {
+            const nk = String(k).trim()
+              .replace(/\s+/g, '_')
+              .replace(/[^\w_]/g, '_')
+              .replace(/__+/g, '_')
+              .replace(/^_+|_+$/g, '')
+              .toLowerCase();
+            obj[nk] = row[k];
+          });
+          return obj;
+        });
+      }
+    } catch (prestasiError) {
+      console.error('Error loading prestasi data:', prestasiError);
+    }
+    
     const dataToProcess = rawData;
-    console.log('Data to process:', dataToProcess.length, 'rows');
 
-    // helper: normalisasi header jadi underscore_case
+    // Helper: normalize header to underscore_case
     function normalizeKey(k) {
       return String(k).trim()
-        .replace(/\s+/g, '_')       // spasi -> _
-        .replace(/[^\w_]/g, '_')    // non-word -> _
-        .replace(/__+/g, '_')       // collapse __
-        .replace(/^_+|_+$/g, '')    // trim leading/trailing _
-        .toLowerCase();             // convert to lowercase
+        .replace(/\s+/g, '_')
+        .replace(/[^\w_]/g, '_')
+        .replace(/__+/g, '_')
+        .replace(/^_+|_+$/g, '')
+        .toLowerCase();
     }
 
     dataSiswa = dataToProcess.map((row, index) => {
@@ -138,62 +145,26 @@ async function loadData() {
       if (typeof Object.keys(row)[0] === 'string' && Object.keys(row)[0].match(/^\d+$/)) {
         // Numeric column names - use position-based mapping
         const keys = Object.keys(row).sort((a, b) => parseInt(a) - parseInt(b));
-        obj.no = row[keys[0]];           // Column 1: No
-        obj.no_induk = row[keys[1]];     // Column 2: No_Induk  
-        obj.nisn = row[keys[2]];         // Column 3: NISN
-        obj.nama_lengkap = row[keys[3]]; // Column 4: Nama_Lengkap
-        obj.nama_panggilan = row[keys[4]]; // Column 5: Nama_Panggilan
-        obj.jenis_kelamin = row[keys[5]]; // Column 6: Jenis_Kelamin
-        obj.tempat_lahir = row[keys[6]];  // Column 7: Tempat_Lahir
-        obj.tanggal_lahir = row[keys[7]]; // Column 8: Tanggal_Lahir
-        // Add more mappings as needed for other fields
-        
-        if (index < 2) {
-          console.log(`Row ${index} position-based mapping:`, {
-            no: obj.no,
-            no_induk: obj.no_induk,
-            nisn: obj.nisn,
-            nama_lengkap: obj.nama_lengkap,
-            nama_panggilan: obj.nama_panggilan
-          });
-        }
+        obj.no = row[keys[0]];
+        obj.no_induk = row[keys[1]];
+        obj.nisn = row[keys[2]];
+        obj.nama_lengkap = row[keys[3]];
+        obj.nama_panggilan = row[keys[4]];
+        obj.jenis_kelamin = row[keys[5]];
+        obj.tempat_lahir = row[keys[6]];
+        obj.tanggal_lahir = row[keys[7]];
       } else {
         // Normal column names - use standard normalization
         Object.keys(row).forEach(k => {
           const nk = normalizeKey(k);
           obj[nk] = row[k];
         });
-        
-        // Debug: Log first row's keys related to Section C and E
-        if (index === 0) {
-          const relevantKeys = Object.keys(obj).filter(k => 
-            k.includes('masuk') || k.includes('pindahan') || k.includes('tamat') || 
-            k.includes('pindah_sekolah') || k.includes('keluar') || k.includes('bea')
-          );
-          console.log('First student - Section C & E keys:', relevantKeys);
-          console.log('Sample values:', {
-            masuk_asal: obj.masuk_menjadi_murid_baru_asal_murid,
-            masuk_tk: obj.masuk_menjadi_murid_baru_nama_tk,
-            bea: obj.jenis_bea_siswa,
-            tamat: obj.tamat_belajar_tahun
-          });
-        }
       }
 
-      // convenience fields
+      // Convenience fields
       obj.foto = obj.foto || 'profil.png';
       obj.nis = obj.no_induk || obj.nisn || obj.nis || obj.no || '';
       obj.nama = obj.nama_lengkap || obj.nama_panggilan || obj.nama || '';
-      
-      if (index < 2) {
-        console.log(`Row ${index} after field mapping:`, {
-          nis: obj.nis,
-          nama: obj.nama,
-          no_induk: obj.no_induk,
-          nama_lengkap: obj.nama_lengkap,
-          nama_panggilan: obj.nama_panggilan
-        });
-      }
       
       if (!obj.ttl) {
         if (obj.tempat_lahir || obj.tanggal_lahir) {
@@ -209,67 +180,17 @@ async function loadData() {
 
       return obj;
     });
-
-    console.log('Before filtering - total processed rows:', dataSiswa.length);
-    console.log('Sample before filtering:', dataSiswa.slice(0, 3).map(s => ({ nama: s.nama, nis: s.nis })));
-    
-    // Debug: Check if Section C and E data is loaded
-    console.log('Section C & E data check:', dataSiswa.slice(0, 1).map(s => ({
-      nama: s.nama,
-      asal_murid: s.masuk_menjadi_murid_baru_asal_murid,
-      nama_tk: s.masuk_menjadi_murid_baru_nama_tk,
-      jenis_bea: s.jenis_bea_siswa,
-      tamat_tahun: s.tamat_belajar_tahun,
-      pindah_kelas: s.pindah_sekolah_dari_kelas
-    })));
-    
-    // Alert for debugging - show which keys exist
-    if (dataSiswa.length > 0) {
-      const firstStudent = dataSiswa[0];
-      console.log('FIRST STUDENT - Keys containing "masuk":', Object.keys(firstStudent).filter(k => k.includes('masuk')));
-      console.log('FIRST STUDENT - Sample Section C data:', {
-        asal: firstStudent.masuk_menjadi_murid_baru_asal_murid,
-        tk: firstStudent.masuk_menjadi_murid_baru_nama_tk
-      });
-    }
     
     // Filter out records without names
     dataSiswa = dataSiswa.filter(s => s.nama);
-    
-    // debug quick check (bisa dihapus)
-    console.log('Total loaded records after filtering:', dataSiswa.length);
-    console.log('Loaded columns example:', dataSiswa[0] || {});
-    console.log('Sample names:', dataSiswa.slice(0, 5).map(s => s.nama));
-    console.log('First student name:', dataSiswa[0]?.nama);
-    console.log('Address fields check:', Object.keys(dataSiswa[0] || {}).filter(key => 
-      key.toLowerCase().includes('alamat') || 
-      key.toLowerCase().includes('jalan') || 
-      key.toLowerCase().includes('rt') || 
-      key.toLowerCase().includes('rw') ||
-      key.toLowerCase().includes('kelurahan') ||
-      key.toLowerCase().includes('kecamatan') ||
-      key.toLowerCase().includes('kota') ||
-      key.toLowerCase().includes('provinsi')
-    ));
-    console.log('Sample address data:', dataSiswa[0] ? {
-      original_address: dataSiswa[0].alamat,
-      available_fields: Object.keys(dataSiswa[0]).filter(key => 
-        key.toLowerCase().includes('alamat') || 
-        key.toLowerCase().includes('jalan') || 
-        key.toLowerCase().includes('rt') || 
-        key.toLowerCase().includes('rw')
-      ).map(key => ({ [key]: dataSiswa[0][key] }))
-    } : 'No data');
   } catch (e) {
     console.error('Error loading data:', e);
-    console.error('Using fallback data...');
-    // fallback dengan field names yang konsisten
+    // Fallback data
     dataSiswa = [
       { nis: "12345", nama: "Budi Santoso", kelas: "XII IPA 1", foto: "https://via.placeholder.com/120", ttl: "Jakarta, 1 Jan 2005", alamat: "Jl. Sudirman No.1" },
       { nis: "67890", nama: "Ani Lestari", kelas: "XI IPS 2", foto: "https://via.placeholder.com/120", ttl: "Bandung, 2 Feb 2006", alamat: "Jl. Thamrin No.2" },
       { nis: "11223", nama: "Citra Dewi", kelas: "X IPA 3", foto: "https://via.placeholder.com/120", ttl: "Surabaya, 3 Mar 2007", alamat: "Jl. Diponegoro No.3" }
     ];
-    console.log('Fallback data loaded:', dataSiswa.length, 'records');
   }
 }
 
@@ -328,17 +249,10 @@ function searchSiswa() {
     return;
   }
 
-  // Debug logging
-  console.log('Searching for:', keyword);
-  console.log('Total dataSiswa:', dataSiswa.length);
-  console.log('Sample data:', dataSiswa.slice(0, 2));
-
   currentResults = dataSiswa.filter(s =>
     (s.nama && String(s.nama).toLowerCase().includes(keyword)) ||
     (s.nis && String(s.nis).toLowerCase().includes(keyword))
   );
-
-  console.log('Search results:', currentResults.length);
 
   if (currentResults.length === 0) {
     document.getElementById("resultList").innerHTML = "<p>Data tidak ditemukan.</p>";
@@ -358,25 +272,7 @@ function searchSiswa() {
 // Show detail siswa
 function showDetail(index) {
   const s = currentResults[index];
-  console.log('=== SHOW DETAIL DEBUG ===');
-  console.log('Student object:', s);
-  console.log('Section C fields:', {
-    masuk_asal: s.masuk_menjadi_murid_baru_asal_murid,
-    masuk_tk: s.masuk_menjadi_murid_baru_nama_tk,
-    masuk_alamat: s.masuk_menjadi_murid_baru_alamat_sekolah,
-    masuk_tgl_sttb: s.masuk_menjadi_murid_baru_tgl_sttb,
-    masuk_nomor_sttb: s.masuk_menjadi_murid_baru_nomor_sttb
-  });
-  console.log('Section E fields:', {
-    tamat_tahun: s.tamat_belajar_tahun,
-    tamat_melanjutkan: s.tamat_belajar_melanjutkan_ke_sekolah,
-    pindah_dari_kelas: s.pindah_sekolah_dari_kelas,
-    pindah_ke_sekolah: s.pindah_sekolah_ke_sekolah,
-    pindah_kelas: s.pindah_sekolah_kelas,
-    keluar_tanggal: s.keluar_sekolah_tanggal,
-    keluar_alasan: s.keluar_sekolah_alasan
-  });
-  console.log('Bea Siswa:', s.jenis_bea_siswa);
+  currentStudent = s; // Store current student for prestasi access
   document.getElementById("searchPage").classList.add("hidden");
   document.getElementById("detailPage").classList.remove("hidden");
 
@@ -791,4 +687,208 @@ function showDetail(index) {
     </div>
   `;
   document.getElementById("detailContent").innerHTML = detailHTML;
+  
+  // Hide prestasi section when showing new detail
+  document.getElementById("prestasiContent").style.display = 'none';
+  const toggleBtn = document.getElementById('togglePrestasiBtn');
+  if (toggleBtn) {
+    toggleBtn.textContent = '📊 Tampilkan Prestasi';
+    toggleBtn.style.background = '#28a745';
+  }
+}
+
+// Toggle Prestasi Section
+function togglePrestasi() {
+  if (!currentStudent) {
+    alert('Tidak ada data siswa yang dipilih');
+    return;
+  }
+  
+  const prestasiSection = document.getElementById('prestasiContent');
+  const toggleBtn = document.getElementById('togglePrestasiBtn');
+  
+  if (prestasiSection.style.display === 'none') {
+    // Show prestasi
+    const prestasi = dataPrestasi.find(p => p.nama === currentStudent.nama);
+    
+    if (!prestasi) {
+      prestasiSection.innerHTML = `
+        <div class="buku-induk-page" style="padding: 40px; text-align: center;">
+          <h3 style="color: #666;">Data prestasi untuk ${currentStudent.nama} tidak ditemukan</h3>
+        </div>
+      `;
+    } else {
+      // Build prestasi HTML
+      prestasiSection.innerHTML = buildPrestasiHTML(prestasi, currentStudent.nama);
+    }
+    
+    prestasiSection.style.display = 'block';
+    toggleBtn.textContent = '📊 Sembunyikan Prestasi';
+    toggleBtn.style.background = '#6c757d';
+    
+    // Scroll to prestasi
+    prestasiSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  } else {
+    // Hide prestasi
+    prestasiSection.style.display = 'none';
+    toggleBtn.textContent = '📊 Tampilkan Prestasi';
+    toggleBtn.style.background = '#28a745';
+  }
+}
+
+// Build Prestasi HTML
+function buildPrestasiHTML(prestasi, studentName) {
+  return `
+    <div class="buku-induk-page">
+      <div class="page-header">
+        <div class="title-section">
+          <h2>BUKU INDUK SISWA - PRESTASI</h2>
+        </div>
+        <div class="header-info">
+          <div class="nis-box">
+            <span>Nama Siswa:</span>
+            <span class="number-box">${studentName}</span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="main-content">
+        <div class="table-with-photos">
+          <table class="buku-induk-table">
+            <!-- Section F Header -->
+            <tr class="section-header">
+              <td colspan="4">F. PRESTASI</td>
+            </tr>
+          
+          <!-- Sikap -->
+          <tr>
+            <td class="numbering" rowspan="2">1.</td>
+            <td class="label" rowspan="2">Penilaian Sikap</td>
+            <td class="sub-label">a. Sikap Spiritual</td>
+            <td class="value">: ${prestasi.nilai_sikap_spriritual || '—'}</td>
+          </tr>
+          <tr>
+            <td class="sub-label">b. Sikap Sosial</td>
+            <td class="value">: ${prestasi.nilai_sikap_sosial || '—'}</td>
+          </tr>
+          
+          <!-- Nilai Akademik Header -->
+          <tr>
+            <td class="numbering">2.</td>
+            <td class="label" colspan="3">Nilai Akademik</td>
+          </tr>
+          
+          ${buildSubjectRows(prestasi)}
+          
+          <!-- Ekstrakurikuler -->
+          <tr>
+            <td class="numbering" rowspan="4">3.</td>
+            <td class="label" rowspan="4">Ekstrakurikuler</td>
+            <td class="sub-label">a. Pramuka</td>
+            <td class="value">: ${prestasi.ekstrakurikuler_pramuka_deskripsi || '—'}</td>
+          </tr>
+          <tr>
+            <td class="sub-label">b. Bahasa Inggris</td>
+            <td class="value">: ${prestasi.ekstrakurikuler_bahasa_inggris_deskripsi || '—'}</td>
+          </tr>
+          <tr>
+            <td class="sub-label">c. Komputer</td>
+            <td class="value">: ${prestasi.ekstrakurikuler_komputer_deskripsi || '—'}</td>
+          </tr>
+          <tr>
+            <td class="sub-label">d. Hadroh</td>
+            <td class="value">: ${prestasi.ekstrakurikuler_hadroh_deskripsi || '—'}</td>
+          </tr>
+          
+          <!-- Prestasi -->
+          <tr>
+            <td class="numbering" rowspan="2">4.</td>
+            <td class="label" rowspan="2">Prestasi</td>
+            <td class="sub-label">a. Kesenian</td>
+            <td class="value">: ${prestasi.prestasi_kesenian_deskripsi || '—'}</td>
+          </tr>
+          <tr>
+            <td class="sub-label">b. Olahraga</td>
+            <td class="value">: ${prestasi.prestasi_olahraga_deskripsi || '—'}</td>
+          </tr>
+          
+          <!-- Kesehatan -->
+          <tr>
+            <td class="numbering" rowspan="4">5.</td>
+            <td class="label" rowspan="4">Kesehatan</td>
+            <td class="sub-label">a. Pendengaran</td>
+            <td class="value">: ${prestasi.kesehatan_pendengaran_deskripsi || '—'}</td>
+          </tr>
+          <tr>
+            <td class="sub-label">b. Penglihatan</td>
+            <td class="value">: ${prestasi.kesehatan_pengelihatan_deskripsi || '—'}</td>
+          </tr>
+          <tr>
+            <td class="sub-label">c. Gigi</td>
+            <td class="value">: ${prestasi.kesehatan_gigi_deskripsi || '—'}</td>
+          </tr>
+          <tr>
+            <td class="sub-label">d. Lainnya</td>
+            <td class="value">: ${prestasi.kesehatan_lainya_deskripsi || '—'}</td>
+          </tr>
+          
+          <!-- Ketidakhadiran -->
+          <tr>
+            <td class="numbering" rowspan="3">6.</td>
+            <td class="label" rowspan="3">Ketidakhadiran</td>
+            <td class="sub-label">a. Sakit</td>
+            <td class="value">: ${prestasi.ketidakhadiran_sakit_deskripsi || '—'} hari</td>
+          </tr>
+          <tr>
+            <td class="sub-label">b. Izin</td>
+            <td class="value">: ${prestasi.ketidakhadiran_izin_deskripsi || '—'} hari</td>
+          </tr>
+          <tr>
+            <td class="sub-label">c. Tanpa Keterangan</td>
+            <td class="value">: ${prestasi.ketidakhadiran_tanpa_keterangan_deskripsi || '—'} hari</td>
+          </tr>
+        </table>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// Helper function to build subject rows
+function buildSubjectRows(prestasi) {
+  const subjects = [
+    { name: 'Pendidikan Agama', key: 'pendidikan_agama' },
+    { name: 'PKn', key: 'pkn' },
+    { name: 'Bahasa Indonesia', key: 'bahasa_indonesia' },
+    { name: 'Matematika', key: 'matemaika' },
+    { name: 'IPA', key: 'ipa' },
+    { name: 'IPS', key: 'ips' },
+    { name: 'SBK', key: 'sbk' },
+    { name: 'PJOK', key: 'pjok' },
+    { name: 'Mulok Bahasa Jawa', key: 'mulok_bahasa_jawa' },
+    { name: 'Mulok', key: 'mulok' }
+  ];
+  
+  let html = '';
+  
+  subjects.forEach(subject => {
+    const pengetahuanNilai = prestasi[`${subject.key}_pengetahuan_nilai`];
+    const pengetahuanPredikat = prestasi[`${subject.key}_pengetahuan_predikat`];
+    const keterampilanNilai = prestasi[`${subject.key}_keterampilan_nilai`];
+    const keterampilanPredikat = prestasi[`${subject.key}_keterampilan_predikat`];
+    
+    // Only show if there's data
+    if (pengetahuanNilai || keterampilanNilai) {
+      html += `
+        <tr>
+          <td class="numbering"></td>
+          <td class="label">${subject.name}</td>
+          <td class="sub-label">Pengetahuan: ${pengetahuanNilai || '—'} (${pengetahuanPredikat || '—'})</td>
+          <td class="value">Keterampilan: ${keterampilanNilai || '—'} (${keterampilanPredikat || '—'})</td>
+        </tr>
+      `;
+    }
+  });
+  
+  return html;
 }
