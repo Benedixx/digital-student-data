@@ -83,7 +83,7 @@ function buildIndonesianAddress(obj) {
 // Load data from Excel
 async function loadData() {
   try {
-    const response = await fetch('student_data.xlsx');
+    const response = await fetch('data/student_data.xlsx');
     
     if (!response.ok) {
       throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -99,7 +99,7 @@ async function loadData() {
     
     // Load prestasi data
     try {
-      const prestasiResponse = await fetch('prestasi_data.xlsx');
+      const prestasiResponse = await fetch('data/prestasi_data.xlsx');
       if (prestasiResponse.ok) {
         const prestasiData = await prestasiResponse.arrayBuffer();
         const prestasiWorkbook = XLSX.read(prestasiData, { type: 'array' });

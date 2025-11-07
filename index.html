@@ -4,12 +4,13 @@
   <meta charset="UTF-8">
   <title>Digitalisasi Buku Induk</title>
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="css/styles.css">
 </head>
 <body>
 
   <!-- Login Page -->
   <div id="loginPage" class="login-card">
+    <img src="assets/logo_dki_jakarta.png" alt="Logo DKI Jakarta" class="page-logo">
     <h1>Login</h1>
     <input type="text" id="username" placeholder="Username"><br>
     <input type="password" id="password" placeholder="Password"><br>
@@ -20,6 +21,7 @@
   <!-- Search Page -->
   <div id="searchPage" class="hidden">
     <div class="search-container">
+      <img src="assets/logo_dki_jakarta.png" alt="Logo DKI Jakarta" class="page-logo">
       <h1>Search Siswa</h1>
       <input type="text" id="searchInput" placeholder="Ketik nama / NIS" onkeyup="searchSiswa()">
     </div>
@@ -41,6 +43,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="js/app.js"></script>
 </body>
 </html>
