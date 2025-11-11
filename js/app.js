@@ -1,5 +1,3 @@
-// Digitalisasi Buku Induk - Application JavaScript
-
 // Dummy user login
 const USERNAME = "admin";
 const PASSWORD = "123";
@@ -80,6 +78,28 @@ function buildIndonesianAddress(obj) {
   return result;
 }
 
+// Helper function to convert Excel date serial number to JavaScript Date
+function excelDateToJSDate(serial) {
+  if (!serial || serial === '') return '';
+  
+  // Check if it's already a date string
+  if (typeof serial === 'string') {
+    const date = new Date(serial);
+    if (!isNaN(date.getTime())) return date;
+    return serial; // Return as-is if not a valid date
+  }
+  
+  // Excel serial number (days since 1900-01-01, with 1900 incorrectly considered a leap year)
+  if (typeof serial === 'number') {
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;                                        
+    const date_info = new Date(utc_value * 1000);
+    return date_info;
+  }
+  
+  return serial;
+}
+
 // Load data from Excel
 async function loadData() {
   try {
@@ -90,22 +110,22 @@ async function loadData() {
     }
     
     const data = await response.arrayBuffer();
-    const workbook = XLSX.read(data, { type: 'array' });
+    const workbook = XLSX.read(data, { type: 'array', cellDates: true });
 
     const sheetName = workbook.SheetNames.includes('Data') ? 'Data' : workbook.SheetNames[0];
     const sheet = workbook.Sheets[sheetName];
 
-    const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '' });
+    const rawData = XLSX.utils.sheet_to_json(sheet, { defval: '', raw: false, dateNF: 'yyyy-mm-dd' });
     
     // Load prestasi data
     try {
       const prestasiResponse = await fetch('data/prestasi_data.xlsx');
       if (prestasiResponse.ok) {
         const prestasiData = await prestasiResponse.arrayBuffer();
-        const prestasiWorkbook = XLSX.read(prestasiData, { type: 'array' });
+        const prestasiWorkbook = XLSX.read(prestasiData, { type: 'array', cellDates: true });
         const prestasiSheetName = prestasiWorkbook.SheetNames[0];
         const prestasiSheet = prestasiWorkbook.Sheets[prestasiSheetName];
-        const prestasiRawData = XLSX.utils.sheet_to_json(prestasiSheet, { defval: '' });
+        const prestasiRawData = XLSX.utils.sheet_to_json(prestasiSheet, { defval: '', raw: false, dateNF: 'yyyy-mm-dd' });
         
         // Normalize prestasi data keys
         dataPrestasi = prestasiRawData.map(row => {
@@ -161,9 +181,19 @@ async function loadData() {
         });
       }
 
-      // Convenience fields
-      obj.foto = obj.foto || 'assets/profil.jpg';
+      // Set NISN and NIS first
+      obj.nisn = obj.nisn || '';
       obj.nis = obj.no_induk || obj.nisn || obj.nis || obj.no || '';
+      
+      // Convenience fields - Photo based on NISN
+      if (!obj.foto && obj.nisn) {
+        // try loading from student_photo folder
+        obj.foto = `assets/student_photo/${obj.nisn}.jpg`;
+      } else {
+        // fallback to default photo
+        obj.foto = obj.foto || 'assets/profil.jpg';
+      }
+      
       obj.nama = obj.nama_lengkap || obj.nama_panggilan || obj.nama || '';
       
       if (!obj.ttl) {
@@ -294,7 +324,7 @@ function showDetail(index) {
     return `${dayName}, ${day} ${monthName} ${year}`;
   }
   
-  // Create full-page Buku Induk format matching traditional Indonesian format
+  // Create full-page Buku Induk format
   let detailHTML = `
     <div class="buku-induk-page">
       <!-- Header with title and NIS/NISN -->
@@ -763,7 +793,10 @@ function showDetail(index) {
           
           <!-- Single photo box with 3x4 aspect ratio -->
           <div class="photo-box">
-            <img src="${s.foto || 'assets/profil.png'}" alt="Foto ${s.nama}" class="student-photo">
+            <img src="${s.foto || 'assets/profil.jpg'}" 
+                 alt="Foto ${s.nama}" 
+                 class="student-photo"
+                 onerror="handleImageError(this, '${s.nisn}')">
           </div>
         </div>
       </div>
@@ -1032,4 +1065,12 @@ function buildSubjectRows(prestasi) {
   });
   
   return html;
+}
+
+// Helper function to handle image loading errors - fallback to default
+function handleImageError(img, nisn) {
+  // Remove the error handler first to prevent any loops
+  img.onerror = null;
+  // Use default profile image
+  img.src = 'assets/profil.jpg';
 }
